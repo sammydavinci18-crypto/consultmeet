@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ meeting.title }} · Recording{% endblock %}
+{% block page_class %}room-page{% endblock %}
+
+{% block content %}
+<div class="room-header">
+  <div>
+    <span class="title">{{ meeting.title }}</span>
+    <span class="code-pill">{{ meeting.room_code }}</span>
+  </div>
+  <span class="recording-badge">● Recording</span>
+</div>
+
+<div class="playback-wrap">
+  <p class="playback-note">
+    This meeting has ended. You're watching a recording of the session,
+    from the beginning, as it happened.
+  </p>
+  <video
+    class="playback-video"
+    src="{{ url_for('meetings.stream_recording', meeting_id=meeting.id) }}"
+    controls
+    autoplay
+    playsinline
+  ></video>
+  <a href="{{ url_for('main.dashboard') }}" class="btn btn-ghost">← Back to dashboard</a>
+</div>
+{% endblock %}

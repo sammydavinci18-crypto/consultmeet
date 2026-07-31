@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}New meeting · ConsultMeet{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+  <span class="auth-eyebrow">New session</span>
+  <h1>Set up a consultation</h1>
+  <p class="sub">You'll be the host — your video shows large for every participant.</p>
+
+  <form method="POST">
+    <div class="field">
+      <label for="title">Meeting title</label>
+      <input type="text" id="title" name="title" placeholder="e.g. Initial consultation with J. Smith" autofocus>
+    </div>
+    <div class="field">
+      <label for="scheduled_time">Scheduled time (optional)</label>
+      <input type="datetime-local" id="scheduled_time" name="scheduled_time">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Create meeting</button>
+  </form>
+
+  <p class="auth-switch"><a href="{{ url_for('main.dashboard') }}">← Back to dashboard</a></p>
+</div>
+{% endblock %}

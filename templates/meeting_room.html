@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ meeting.title }} · ConsultMeet{% endblock %}
+{% block page_class %}room-page{% endblock %}
+
+{% block content %}
+<div class="room-header">
+  <div>
+    <span class="title">{{ meeting.title }}</span>
+    <span class="code-pill">{{ meeting.room_code }}</span>
+  </div>
+  <span class="live-dot">Live</span>
+</div>
+
+<div class="recording-notice">
+  <span class="rec-dot"></span>
+  This meeting is being recorded. Anyone who couldn't attend can watch it back later using the room code.
+</div>
+
+<div class="room-body">
+  <div class="stage-area">
+    <!-- Host's video: always the large tile -->
+    <div class="spotlight-tile" id="spotlight-tile">
+      <div class="avatar-fallback" id="spotlight-avatar">{{ meeting.host.name[0]|upper }}</div>
+      <div class="tile-label" id="spotlight-label">
+        <span class="host-badge">Host</span> {{ meeting.host.name }}
+      </div>
+    </div>
+
+    <div class="filmstrip-wrap">
+      <div class="filmstrip-label">Participants</div>
+      <div class="filmstrip" id="filmstrip">
+        <div class="filmstrip-empty" id="filmstrip-empty">Waiting for others to join…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls-bar">
+  <button class="ctrl-btn" id="btn-mic" title="Mute / unmute">🎤</button>
+  <button class="ctrl-btn" id="btn-cam" title="Turn camera on / off">📷</button>
+  <button class="ctrl-btn notes-toggle" id="btn-notes" title="Consultation notes">📝</button>
+  {% if is_host %}
+    <button class="ctrl-btn leave" id="btn-end-meeting" title="End meeting for everyone">End meeting</button>
+  {% else %}
+    <button class="ctrl-btn leave" id="btn-leave" title="Leave meeting">Leave</button>
+  {% endif %}
+</div>
+
+<!-- Consultation notes side panel -->
+<div class="notes-panel" id="notes-panel">
+  <div class="notes-header">
+    <h3>Consultation notes</h3>
+    <button class="notes-close" id="notes-close">✕</button>
+  </div>
+  <div class="notes-list" id="notes-list"></div>
+  <form class="notes-form" id="notes-form">
+    <textarea id="notes-input" placeholder="Add a note about this consultation…"></textarea>
+    <button type="submit" class="btn btn-primary btn-sm">Add note</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  window.ROOM_CONFIG = {
+    roomCode: {{ meeting.room_code|tojson }},
+    isHost: {{ is_host|tojson }},
+    userName: {{ current_user.name|tojson }},
+    hostName: {{ meeting.host.name|tojson }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
+{% if is_host %}
+<script src="{{ url_for('static', filename='js/recorder.js') }}"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

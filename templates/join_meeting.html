@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Join meeting · ConsultMeet{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+  <span class="auth-eyebrow">Join a session</span>
+  <h1>Enter room code</h1>
+  <p class="sub">Ask the host for the code shown on their dashboard.</p>
+
+  <form method="POST">
+    <div class="field">
+      <label for="room_code">Room code</label>
+      <input type="text" id="room_code" name="room_code" placeholder="e.g. aZ3xY9kQ" autofocus required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Join meeting</button>
+  </form>
+
+  <p class="auth-switch"><a href="{{ url_for('main.dashboard') }}">← Back to dashboard</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · ConsultMeet{% endblock %}
+
+{% block content %}
+<div class="dash-head">
+  <div>
+    <h1>Your consultations</h1>
+    <p>Host a new session or join one with a room code.</p>
+  </div>
+  <div class="dash-actions">
+    <a href="{{ url_for('meetings.join_meeting') }}" class="btn btn-ghost">Join with code</a>
+    <a href="{{ url_for('meetings.create_meeting') }}" class="btn btn-primary">+ New meeting</a>
+  </div>
+</div>
+
+<div class="section-label">Meetings you host</div>
+{% if hosted %}
+  <div class="meeting-grid">
+    {% for m in hosted %}
+      <div class="meeting-card">
+        <h3>{{ m.title }}</h3>
+        <span class="code">{{ m.room_code }}</span>
+        <span class="meta">
+          {% if m.scheduled_time %}Scheduled {{ m.scheduled_time.strftime('%b %d, %Y %I:%M %p') }}{% else %}No fixed time{% endif %}
+          · {{ m.status|capitalize }}
+        </span>
+        <a href="{{ url_for('meetings.room', room_code=m.room_code) }}" class="btn btn-primary btn-sm">
+          {% if m.status == 'ended' %}Watch recording{% else %}Start / enter room{% endif %}
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">You haven't created a meeting yet. Click "New meeting" to set one up.</div>
+{% endif %}
+
+<div class="section-label">Meetings you've joined</div>
+{% if joined %}
+  <div class="meeting-grid">
+    {% for m in joined %}
+      <div class="meeting-card">
+        <h3>{{ m.title }}</h3>
+        <span class="code">{{ m.room_code }}</span>
+        <span class="meta">Hosted by {{ m.host.name }}</span>
+        <a href="{{ url_for('meetings.room', room_code=m.room_code) }}" class="btn btn-ghost btn-sm">
+          {% if m.status == 'ended' %}Watch recording{% else %}Rejoin room{% endif %}
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">You haven't joined any meetings yet.</div>
+{% endif %}
+{% endblock %}
