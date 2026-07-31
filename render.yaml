@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: consultmeet
+    env: python
+    region: oregon          # pick the Render region closest to your Supabase project's region
+    plan: starter           # free plan has no persistent disk — see RECORDINGS_DIR note below
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --worker-class gthread --threads 4 --timeout 120 -w 1 --bind 0.0.0.0:$PORT app:app"
+    # Runs once per deploy, after build, before traffic is switched over.
+    # db.create_all() is idempotent, so this is safe to run on every deploy.
+    preDeployCommand: "flask --app app init-db"
+    healthCheckPath: /login
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true        # Render generates and stores a random secret for you
+      - key: DB_ENGINE
+        value: postgres
+      - key: DATABASE_URL
+        sync: false               # set manually in the Render dashboard — see note below
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: RECORDINGS_DIR
+        value: /var/data/recordings
+    disk:
+      name: recordings
+      mountPath: /var/data
+      sizeGB: 1                   # bump as needed; only available on paid plans

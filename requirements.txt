@@ -1,0 +1,15 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-SocketIO==5.3.6
+python-socketio==5.11.2
+python-dotenv==1.0.1
+
+# Postgres driver — used when DB_ENGINE=postgres (Supabase, Render, etc.)
+psycopg2-binary==2.9.9
+
+# Production WSGI server for Render
+gunicorn==22.0.0
+
+# Only needed if you switch DB_ENGINE=mysql in .env later (SQLite needs no driver)
+PyMySQL==1.1.1
