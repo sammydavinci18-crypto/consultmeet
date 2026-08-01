@@ -119,7 +119,8 @@ async function callPeer(targetSid, meta) {
   socket.emit("signal", { target: targetSid, signal: { type: "offer", sdp: offer } });
 }
 
-socket.on("existing_peers", async ({ peers }) => {
+socket.on("existing_peers", async ({ peers, recording }) => {
+  window.dispatchEvent(new CustomEvent("recording-status", { detail: { recording: !!recording } }));
   for (const peer of peers) {
     await callPeer(peer.sid, { name: peer.name, isHost: peer.is_host });
   }

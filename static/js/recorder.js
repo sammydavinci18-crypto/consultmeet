@@ -145,7 +145,7 @@ function startRecording() {
 
 // window.stopRecordingAndWait(): used by main.js when the host clicks "End meeting".
 // Resolves once the final chunk has been uploaded, so it's safe to call the
-// /end endpoint right after.
+// /end endpoint right after. Resolves immediately if nothing was recording.
 window.stopRecordingAndWait = function () {
   return new Promise((resolve) => {
     if (!recordingActive || !recorder) {
@@ -161,11 +161,26 @@ window.stopRecordingAndWait = function () {
   });
 };
 
-// Wait for the local camera/mic stream (set by webrtc.js) before starting.
-(function waitForLocalStreamThenStart() {
-  if (window._localStreamRef) {
-    startRecording();
-  } else {
-    setTimeout(waitForLocalStreamThenStart, 300);
-  }
-})();
+// The host decides whether to record (via a consent prompt shown on entry,
+// or the Record button in the control bar at any point during the call) —
+// recording no longer starts automatically just because the host joined.
+window.RecordingControl = {
+  start() {
+    // Camera/mic stream is set by webrtc.js; wait for it if it isn't ready yet.
+    if (window._localStreamRef) {
+      startRecording();
+    } else {
+      const wait = () => {
+        if (window._localStreamRef) startRecording();
+        else setTimeout(wait, 300);
+      };
+      wait();
+    }
+  },
+  stop() {
+    return window.stopRecordingAndWait();
+  },
+  isActive() {
+    return recordingActive;
+  },
+};

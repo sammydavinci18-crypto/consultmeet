@@ -85,7 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
     micOn = !micOn;
     window.localStream.getAudioTracks().forEach((t) => (t.enabled = micOn));
     btnMic.classList.toggle("active-off", !micOn);
-    btnMic.textContent = micOn ? "🎤" : "🔇";
+    btnMic.querySelector(".icon").innerHTML = window.ICONS[micOn ? "mic" : "micOff"];
+    btnMic.querySelector(".ctrl-label").textContent = micOn ? "Mute" : "Unmute";
+    delete btnMic.dataset.forcedMute;
   });
 
   btnCam.addEventListener("click", () => {
@@ -93,8 +95,78 @@ document.addEventListener("DOMContentLoaded", () => {
     camOn = !camOn;
     window.localStream.getVideoTracks().forEach((t) => (t.enabled = camOn));
     btnCam.classList.toggle("active-off", !camOn);
-    btnCam.textContent = camOn ? "📷" : "🚫";
+    btnCam.querySelector(".icon").innerHTML = window.ICONS[camOn ? "video" : "videoOff"];
+    btnCam.querySelector(".ctrl-label").textContent = camOn ? "Stop video" : "Start video";
   });
+
+  /* ---------------- Recording: host decides, everyone sees status live ---------------- */
+  const recordingNotice = document.getElementById("recording-notice");
+
+  function setRecordingBanner(isRecording) {
+    if (!recordingNotice) return;
+    recordingNotice.style.display = isRecording ? "inline-flex" : "none";
+  }
+
+  // Late joiners learn the current status from webrtc.js's existing_peers payload.
+  window.addEventListener("recording-status", (e) => setRecordingBanner(e.detail.recording));
+
+  if (window._socket) {
+    window._socket.on("recording_status", ({ recording }) => setRecordingBanner(recording));
+  }
+
+  const btnRecord = document.getElementById("btn-record");
+  const recordConsentOverlay = document.getElementById("record-consent-overlay");
+  const btnConsentRecord = document.getElementById("btn-consent-record");
+  const btnConsentSkip = document.getElementById("btn-consent-skip");
+
+  function setRecordButtonUI(isRecording) {
+    if (!btnRecord) return;
+    const icon = btnRecord.querySelector(".icon");
+    const label = btnRecord.querySelector(".ctrl-label");
+    if (icon && window.ICONS) icon.innerHTML = window.ICONS[isRecording ? "stopRecord" : "record"];
+    if (label) label.textContent = isRecording ? "Stop" : "Record";
+    btnRecord.classList.toggle("active-on", isRecording);
+    btnRecord.title = isRecording ? "Stop recording" : "Start recording";
+  }
+
+  function beginRecording() {
+    if (window.RecordingControl) window.RecordingControl.start();
+    window._socket.emit("recording_status", { room_code: window.ROOM_CONFIG.roomCode, recording: true });
+    setRecordingBanner(true);
+    setRecordButtonUI(true);
+  }
+
+  async function endRecording() {
+    if (window.RecordingControl) await window.RecordingControl.stop();
+    window._socket.emit("recording_status", { room_code: window.ROOM_CONFIG.roomCode, recording: false });
+    setRecordingBanner(false);
+    setRecordButtonUI(false);
+  }
+
+  if (btnRecord) {
+    btnRecord.addEventListener("click", () => {
+      const isActive = window.RecordingControl && window.RecordingControl.isActive();
+      if (isActive) endRecording();
+      else beginRecording();
+    });
+  }
+
+  if (recordConsentOverlay) {
+    // Host sees this once, right after being let into their own room.
+    window.addEventListener("admitted", () => recordConsentOverlay.classList.add("show"), { once: true });
+
+    if (btnConsentRecord) {
+      btnConsentRecord.addEventListener("click", () => {
+        beginRecording();
+        recordConsentOverlay.classList.remove("show");
+      });
+    }
+    if (btnConsentSkip) {
+      btnConsentSkip.addEventListener("click", () => {
+        recordConsentOverlay.classList.remove("show");
+      });
+    }
+  }
 
   if (btnLeave) {
     btnLeave.addEventListener("click", () => {

@@ -8,12 +8,12 @@
     <span class="title">{{ meeting.title }}</span>
     <span class="code-pill">{{ meeting.room_code }}</span>
   </div>
-  <span class="live-dot">Live</span>
-</div>
-
-<div class="recording-notice">
-  <span class="rec-dot"></span>
-  This meeting is being recorded. Anyone who couldn't attend can watch it back later using the room code.
+  <div class="room-header-right">
+    <span class="recording-notice" id="recording-notice" style="display:none;">
+      <span class="rec-dot"></span> Recording
+    </span>
+    <span class="live-dot">Live</span>
+  </div>
 </div>
 
 <div class="room-body">
@@ -42,12 +42,20 @@
 <div class="reaction-toasts" id="reaction-toasts"></div>
 
 <div class="controls-bar">
-  <button class="ctrl-btn" id="btn-mic" title="Mute / unmute">🎤</button>
-  <button class="ctrl-btn" id="btn-cam" title="Turn camera on / off">📷</button>
-  <button class="ctrl-btn" id="btn-screen-share" title="Share your screen">🖥️</button>
+  <button class="ctrl-btn" id="btn-mic" title="Mute / unmute">
+    <span class="icon" data-icon="mic"></span><span class="ctrl-label">Mute</span>
+  </button>
+  <button class="ctrl-btn" id="btn-cam" title="Turn camera on / off">
+    <span class="icon" data-icon="video"></span><span class="ctrl-label">Stop video</span>
+  </button>
+  <button class="ctrl-btn" id="btn-screen-share" title="Share your screen">
+    <span class="icon" data-icon="screenShare"></span><span class="ctrl-label">Share</span>
+  </button>
 
   <div class="bg-picker-wrap">
-    <button class="ctrl-btn" id="btn-background" title="Virtual background">🌆</button>
+    <button class="ctrl-btn" id="btn-background" title="Virtual background">
+      <span class="icon" data-icon="background"></span><span class="ctrl-label">Background</span>
+    </button>
     <div class="background-menu" id="background-menu">
       <div class="bg-option selected" data-bg-mode="none">None</div>
       <div class="bg-option" data-bg-mode="blur">Blur</div>
@@ -56,7 +64,9 @@
     </div>
   </div>
 
-  <button class="ctrl-btn" id="btn-hand-raise" title="Raise / lower hand">✋</button>
+  <button class="ctrl-btn" id="btn-hand-raise" title="Raise / lower hand">
+    <span class="icon" data-icon="hand"></span><span class="ctrl-label">Raise hand</span>
+  </button>
 
   <div class="reaction-picker">
     <button class="ctrl-btn reaction-btn" data-emoji="👍" title="Thumbs up">👍</button>
@@ -65,16 +75,27 @@
     <button class="ctrl-btn reaction-btn" data-emoji="😂" title="Laugh">😂</button>
   </div>
 
-  <button class="ctrl-btn" id="btn-view-mode" title="Switch to gallery view">⊞</button>
+  <button class="ctrl-btn" id="btn-view-mode" title="Switch to gallery view">
+    <span class="icon" data-icon="grid"></span><span class="ctrl-label">Layout</span>
+  </button>
+
+  {% if is_host %}
+  <button class="ctrl-btn" id="btn-record" title="Start recording">
+    <span class="icon" data-icon="record"></span><span class="ctrl-label">Record</span>
+  </button>
+  {% endif %}
 
   <button class="ctrl-btn" id="btn-chat" title="Chat">
-    💬<span class="badge-count" id="chat-unread" style="display:none;">0</span>
+    <span class="icon" data-icon="chat"></span><span class="ctrl-label">Chat</span>
+    <span class="badge-count" id="chat-unread" style="display:none;">0</span>
   </button>
   <button class="ctrl-btn" id="btn-participants" title="Participants">
-    👥<span class="badge-count" id="pending-count" style="display:none;">0</span>
+    <span class="icon" data-icon="users"></span><span class="ctrl-label">People</span>
+    <span class="badge-count" id="pending-count" style="display:none;">0</span>
   </button>
   <button class="ctrl-btn notes-toggle" id="btn-notes" title="Consultation notes">
-    📝<span class="badge-count" id="notes-unread" style="display:none;">0</span>
+    <span class="icon" data-icon="notes"></span><span class="ctrl-label">Notes</span>
+    <span class="badge-count" id="notes-unread" style="display:none;">0</span>
   </button>
 
   {% if is_host %}
@@ -83,6 +104,20 @@
     <button class="ctrl-btn leave" id="btn-leave" title="Leave meeting">Leave</button>
   {% endif %}
 </div>
+
+{% if is_host %}
+<!-- Recording consent — the host decides before anything records -->
+<div class="waiting-overlay" id="record-consent-overlay">
+  <div class="waiting-box">
+    <h3>Record this meeting?</h3>
+    <p>Everyone in the room will see a "Recording" indicator the moment it starts. You can turn it on or off at any time from the Record button.</p>
+    <div class="consent-actions">
+      <button class="btn btn-primary btn-sm" id="btn-consent-record">Start recording</button>
+      <button class="btn btn-ghost btn-sm" id="btn-consent-skip">Don't record</button>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <!-- Waiting room overlay (non-hosts, before the host admits them) -->
 <div class="waiting-overlay" id="waiting-overlay">
@@ -96,7 +131,7 @@
 <div class="notes-panel" id="notes-panel">
   <div class="notes-header">
     <h3>Consultation notes</h3>
-    <button class="notes-close" id="notes-close">✕</button>
+    <button class="notes-close" id="notes-close" data-icon="close"></button>
   </div>
   <div class="notes-list" id="notes-list"></div>
   <form class="notes-form" id="notes-form">
@@ -109,12 +144,12 @@
 <div class="notes-panel chat-panel" id="chat-panel">
   <div class="notes-header">
     <h3>Chat</h3>
-    <button class="notes-close" id="chat-close">✕</button>
+    <button class="notes-close" id="chat-close" data-icon="close"></button>
   </div>
   <div class="notes-list" id="chat-messages"></div>
   <form class="notes-form chat-form" id="chat-form">
     <input type="text" id="chat-input" placeholder="Message everyone…" autocomplete="off" maxlength="2000" />
-    <button type="submit" class="btn btn-primary btn-sm">Send</button>
+    <button type="submit" class="btn btn-primary btn-sm" id="chat-send" title="Send" data-icon="send"></button>
   </form>
 </div>
 
@@ -122,7 +157,7 @@
 <div class="notes-panel participants-panel" id="participants-panel">
   <div class="notes-header">
     <h3>Participants</h3>
-    <button class="notes-close" id="participants-close">✕</button>
+    <button class="notes-close" id="participants-close" data-icon="close"></button>
   </div>
   {% if is_host %}
   <div class="pending-section" id="pending-section">
@@ -147,6 +182,7 @@
     hostName: {{ meeting.host.name|tojson }}
   };
 </script>
+<script src="{{ url_for('static', filename='js/icons.js') }}"></script>
 <script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
 {% if is_host %}
 <script src="{{ url_for('static', filename='js/recorder.js') }}"></script>

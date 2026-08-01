@@ -261,7 +261,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnMic = document.getElementById("btn-mic");
     if (btnMic) {
       btnMic.classList.add("active-off");
-      btnMic.textContent = "🔇";
+      const icon = btnMic.querySelector(".icon");
+      const label = btnMic.querySelector(".ctrl-label");
+      if (icon && window.ICONS) icon.innerHTML = window.ICONS.micOff;
+      if (label) label.textContent = "Unmute";
       btnMic.dataset.forcedMute = "true";
     }
     showReactionToast("Host", "🔇 muted everyone");
@@ -280,7 +283,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btnViewMode.addEventListener("click", () => {
       const next = window.getViewMode() === "gallery" ? "speaker" : "gallery";
       window.setViewMode(next);
-      btnViewMode.textContent = next === "gallery" ? "🎤" : "⊞";
+      const icon = btnViewMode.querySelector(".icon");
+      const label = btnViewMode.querySelector(".ctrl-label");
+      if (icon && window.ICONS) icon.innerHTML = window.ICONS[next === "gallery" ? "speakerView" : "grid"];
+      if (label) label.textContent = next === "gallery" ? "Speaker" : "Layout";
       btnViewMode.title = next === "gallery" ? "Switch to speaker view" : "Switch to gallery view";
     });
   }

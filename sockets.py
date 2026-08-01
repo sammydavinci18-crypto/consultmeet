@@ -14,6 +14,11 @@ CONNECTED = {}  # sid -> {"room_code": str, "user_id": int, "name": str, "is_hos
 # room_code -> { sid: name }
 WAITING = {}
 
+# Whether the host currently has recording turned on, per room. Lets a
+# participant who joins mid-call immediately see accurate status instead of
+# assuming "not recording" until the next toggle.
+RECORDING = {}
+
 
 def _host_sid_for_room(room_code):
     return next(
@@ -118,7 +123,7 @@ def handle_join(data):
 
     join_room(room_code)
 
-    emit("existing_peers", {"peers": existing_peers})
+    emit("existing_peers", {"peers": existing_peers, "recording": RECORDING.get(room_code, False)})
     emit(
         "peer_joined",
         {"sid": sid, "name": current_user.name, "is_host": is_host},
@@ -211,6 +216,23 @@ def handle_screen_share(data):
 
 
 # ---------------------------------------------------------------------------
+# Recording status (host decides — see meeting_room.html consent prompt)
+# ---------------------------------------------------------------------------
+
+@socketio.on("recording_status")
+def handle_recording_status(data):
+    room_code = data.get("room_code")
+    if not current_user.is_authenticated:
+        return
+    meeting = Meeting.query.filter_by(room_code=room_code).first()
+    if not meeting or meeting.host_id != current_user.id:
+        return
+    recording = bool(data.get("recording"))
+    RECORDING[room_code] = recording
+    emit("recording_status", {"recording": recording}, room=room_code)
+
+
+# ---------------------------------------------------------------------------
 # Host controls
 # ---------------------------------------------------------------------------
 
@@ -255,6 +277,9 @@ def handle_disconnect():
 
     room_code = info["room_code"]
     emit("peer_left", {"sid": sid}, room=room_code)
+
+    if info["is_host"]:
+        RECORDING.pop(room_code, None)
 
     if not info["is_host"]:
         meeting = Meeting.query.filter_by(room_code=room_code).first()
