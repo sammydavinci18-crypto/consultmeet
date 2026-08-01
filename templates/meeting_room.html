@@ -73,7 +73,9 @@
   <button class="ctrl-btn" id="btn-participants" title="Participants">
     👥<span class="badge-count" id="pending-count" style="display:none;">0</span>
   </button>
-  <button class="ctrl-btn notes-toggle" id="btn-notes" title="Consultation notes">📝</button>
+  <button class="ctrl-btn notes-toggle" id="btn-notes" title="Consultation notes">
+    📝<span class="badge-count" id="notes-unread" style="display:none;">0</span>
+  </button>
 
   {% if is_host %}
     <button class="ctrl-btn leave" id="btn-end-meeting" title="End meeting for everyone">End meeting</button>

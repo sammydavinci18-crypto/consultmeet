@@ -15,7 +15,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 
-from extensions import db
+from extensions import db, socketio
 from models import Meeting, MeetingParticipant, ConsultationNote, Recording, User
 
 meetings_bp = Blueprint("meetings", __name__)
@@ -96,6 +96,18 @@ def notes(room_code):
             note = ConsultationNote(meeting_id=meeting.id, author_id=current_user.id, content=content)
             db.session.add(note)
             db.session.commit()
+
+            # Push it to everyone else in the room right away, so people
+            # don't have to close/reopen the panel to see new notes.
+            socketio.emit(
+                "note_added",
+                {
+                    "author": note.author.name,
+                    "content": note.content,
+                    "created_at": note.created_at.strftime("%b %d, %Y %I:%M %p"),
+                },
+                room=meeting.room_code,
+            )
         return jsonify(
             notes=[
                 {

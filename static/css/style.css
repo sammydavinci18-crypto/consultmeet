@@ -689,7 +689,7 @@ button, input, textarea, select { font-family: inherit; }
   justify-content: center;
   padding: 0 3px;
 }
-#btn-chat, #btn-participants { position: relative; }
+#btn-chat, #btn-participants, #btn-notes { position: relative; }
 
 /* Badge shown on a tile that's currently sharing their screen */
 .presenting-badge {

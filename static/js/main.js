@@ -129,20 +129,26 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderNotes(notes) {
     notesList.innerHTML = "";
     if (!notes.length) {
-      notesList.innerHTML = '<div class="filmstrip-empty">No notes yet for this consultation.</div>';
+      notesList.innerHTML = '<div class="filmstrip-empty" id="notes-empty">No notes yet for this consultation.</div>';
       return;
     }
-    notes.forEach((n) => {
-      const item = document.createElement("div");
-      item.className = "note-item";
-      item.innerHTML = `
-        <div class="note-meta">${escapeHtml(n.author)} · ${escapeHtml(n.created_at)}</div>
-        <div class="note-content"></div>
-      `;
-      item.querySelector(".note-content").textContent = n.content;
-      notesList.appendChild(item);
-    });
+    notes.forEach((n) => appendNoteToDom(n, false));
     notesList.scrollTop = notesList.scrollHeight;
+  }
+
+  function appendNoteToDom(n, scrollIntoView) {
+    const empty = document.getElementById("notes-empty");
+    if (empty) empty.remove();
+
+    const item = document.createElement("div");
+    item.className = "note-item";
+    item.innerHTML = `
+      <div class="note-meta">${escapeHtml(n.author)} · ${escapeHtml(n.created_at)}</div>
+      <div class="note-content"></div>
+    `;
+    item.querySelector(".note-content").textContent = n.content;
+    notesList.appendChild(item);
+    if (scrollIntoView) notesList.scrollTop = notesList.scrollHeight;
   }
 
   function escapeHtml(str) {
@@ -151,8 +157,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return div.innerHTML;
   }
 
+  let notesUnread = 0;
+  const notesUnreadBadge = document.getElementById("notes-unread");
+
   btnNotes.addEventListener("click", () => {
     notesPanel.classList.add("open");
+    notesUnread = 0;
+    if (notesUnreadBadge) notesUnreadBadge.style.display = "none";
     loadNotes();
   });
   notesClose.addEventListener("click", () => notesPanel.classList.remove("open"));
@@ -161,17 +172,31 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const content = notesInput.value.trim();
     if (!content) return;
+    notesInput.value = "";
     fetch(`/room/${window.ROOM_CONFIG.roomCode}/notes`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: `content=${encodeURIComponent(content)}`,
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        notesInput.value = "";
-        renderNotes(data.notes);
-      });
+    }).catch((err) => console.warn("Failed to save note:", err));
+    // The note itself gets added to the panel via the "note_added" socket
+    // broadcast below (the server pushes it to everyone in the room,
+    // including us), so there's nothing else to do here.
   });
+
+  // Live push: every participant (including whoever just wrote it) gets
+  // notes the moment they're saved — no more closing/reopening the panel.
+  if (window._socket) {
+    window._socket.on("note_added", (note) => {
+      appendNoteToDom(note, true);
+      if (!notesPanel.classList.contains("open")) {
+        notesUnread += 1;
+        if (notesUnreadBadge) {
+          notesUnreadBadge.textContent = notesUnread;
+          notesUnreadBadge.style.display = "inline-flex";
+        }
+      }
+    });
+  }
 });
 
 // expose localStream to main.js once webrtc.js sets it up

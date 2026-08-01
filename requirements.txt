@@ -6,7 +6,7 @@ python-socketio==5.11.2
 python-dotenv==1.0.1
 
 # Postgres driver — used when DB_ENGINE=postgres (Supabase, Render, etc.)
-psycopg2-binary
+psycopg2-binary==2.9.9
 
 # Production WSGI server for Render
 gunicorn==22.0.0
