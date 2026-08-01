@@ -19,7 +19,7 @@ services:
       - key: DATABASE_URL
         sync: false               # set manually in the Render dashboard — see note below
       - key: PYTHON_VERSION
-        value: "3.11.9"
+        value: "3.12.7"
       - key: RECORDINGS_DIR
         value: /var/data/recordings
     disk:
