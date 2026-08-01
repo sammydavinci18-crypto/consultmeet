@@ -17,8 +17,8 @@
 </div>
 
 <div class="room-body">
-  <div class="stage-area">
-    <!-- Host's video: always the large tile -->
+  <div class="stage-area" id="stage-area">
+    <!-- Host's video: always the large tile in speaker view -->
     <div class="spotlight-tile" id="spotlight-tile">
       <div class="avatar-fallback" id="spotlight-avatar">{{ meeting.host.name[0]|upper }}</div>
       <div class="tile-label" id="spotlight-label">
@@ -26,24 +26,68 @@
       </div>
     </div>
 
-    <div class="filmstrip-wrap">
+    <div class="filmstrip-wrap" id="filmstrip-wrap">
       <div class="filmstrip-label">Participants</div>
       <div class="filmstrip" id="filmstrip">
         <div class="filmstrip-empty" id="filmstrip-empty">Waiting for others to join…</div>
       </div>
     </div>
   </div>
+
+  <!-- Gallery view: uniform grid, tiles are MOVED here (not cloned) when toggled on -->
+  <div class="gallery-grid" id="gallery-grid" style="display:none;"></div>
 </div>
+
+<!-- Floating reaction toasts -->
+<div class="reaction-toasts" id="reaction-toasts"></div>
 
 <div class="controls-bar">
   <button class="ctrl-btn" id="btn-mic" title="Mute / unmute">🎤</button>
   <button class="ctrl-btn" id="btn-cam" title="Turn camera on / off">📷</button>
+  <button class="ctrl-btn" id="btn-screen-share" title="Share your screen">🖥️</button>
+
+  <div class="bg-picker-wrap">
+    <button class="ctrl-btn" id="btn-background" title="Virtual background">🌆</button>
+    <div class="background-menu" id="background-menu">
+      <div class="bg-option selected" data-bg-mode="none">None</div>
+      <div class="bg-option" data-bg-mode="blur">Blur</div>
+      <div class="bg-option" data-bg-mode="image" data-bg-image="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=60">Office</div>
+      <div class="bg-option" data-bg-mode="image" data-bg-image="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=60">Sky</div>
+    </div>
+  </div>
+
+  <button class="ctrl-btn" id="btn-hand-raise" title="Raise / lower hand">✋</button>
+
+  <div class="reaction-picker">
+    <button class="ctrl-btn reaction-btn" data-emoji="👍" title="Thumbs up">👍</button>
+    <button class="ctrl-btn reaction-btn" data-emoji="👏" title="Applause">👏</button>
+    <button class="ctrl-btn reaction-btn" data-emoji="❤️" title="Heart">❤️</button>
+    <button class="ctrl-btn reaction-btn" data-emoji="😂" title="Laugh">😂</button>
+  </div>
+
+  <button class="ctrl-btn" id="btn-view-mode" title="Switch to gallery view">⊞</button>
+
+  <button class="ctrl-btn" id="btn-chat" title="Chat">
+    💬<span class="badge-count" id="chat-unread" style="display:none;">0</span>
+  </button>
+  <button class="ctrl-btn" id="btn-participants" title="Participants">
+    👥<span class="badge-count" id="pending-count" style="display:none;">0</span>
+  </button>
   <button class="ctrl-btn notes-toggle" id="btn-notes" title="Consultation notes">📝</button>
+
   {% if is_host %}
     <button class="ctrl-btn leave" id="btn-end-meeting" title="End meeting for everyone">End meeting</button>
   {% else %}
     <button class="ctrl-btn leave" id="btn-leave" title="Leave meeting">Leave</button>
   {% endif %}
+</div>
+
+<!-- Waiting room overlay (non-hosts, before the host admits them) -->
+<div class="waiting-overlay" id="waiting-overlay">
+  <div class="waiting-box">
+    <h3>Waiting for the host to let you in…</h3>
+    <p>You'll join automatically as soon as {{ meeting.host.name }} admits you.</p>
+  </div>
 </div>
 
 <!-- Consultation notes side panel -->
@@ -57,6 +101,37 @@
     <textarea id="notes-input" placeholder="Add a note about this consultation…"></textarea>
     <button type="submit" class="btn btn-primary btn-sm">Add note</button>
   </form>
+</div>
+
+<!-- Chat side panel -->
+<div class="notes-panel chat-panel" id="chat-panel">
+  <div class="notes-header">
+    <h3>Chat</h3>
+    <button class="notes-close" id="chat-close">✕</button>
+  </div>
+  <div class="notes-list" id="chat-messages"></div>
+  <form class="notes-form chat-form" id="chat-form">
+    <input type="text" id="chat-input" placeholder="Message everyone…" autocomplete="off" maxlength="2000" />
+    <button type="submit" class="btn btn-primary btn-sm">Send</button>
+  </form>
+</div>
+
+<!-- Participants side panel (also hosts the waiting-room admit/deny list) -->
+<div class="notes-panel participants-panel" id="participants-panel">
+  <div class="notes-header">
+    <h3>Participants</h3>
+    <button class="notes-close" id="participants-close">✕</button>
+  </div>
+  {% if is_host %}
+  <div class="pending-section" id="pending-section">
+    <div class="pending-heading">Waiting to join</div>
+    <div id="pending-list"></div>
+  </div>
+  <div class="participants-toolbar">
+    <button class="btn btn-ghost btn-sm" id="btn-mute-all">Mute all</button>
+  </div>
+  {% endif %}
+  <div class="notes-list" id="participants-list"></div>
 </div>
 {% endblock %}
 
@@ -74,5 +149,9 @@
 {% if is_host %}
 <script src="{{ url_for('static', filename='js/recorder.js') }}"></script>
 {% endif %}
+<!-- Virtual backgrounds (client-side, no server round trip) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+<script src="{{ url_for('static', filename='js/background.js') }}"></script>
+<script src="{{ url_for('static', filename='js/collab.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}

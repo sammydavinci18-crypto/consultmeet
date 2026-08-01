@@ -12,6 +12,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let micOn = true;
   let camOn = true;
+  let screenSharing = false;
+
+  /* ---------------- Screen sharing ---------------- */
+  const btnScreenShare = document.getElementById("btn-screen-share");
+  if (btnScreenShare) {
+    btnScreenShare.addEventListener("click", async () => {
+      if (!screenSharing) {
+        let screenStream;
+        try {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        } catch (err) {
+          return; // user cancelled the picker
+        }
+        const screenTrack = screenStream.getVideoTracks()[0];
+
+        window.replaceOutgoingVideoTrack(screenTrack);
+        window.setLocalVideoTrack(screenTrack);
+        screenSharing = true;
+        btnScreenShare.classList.add("active-on");
+        btnScreenShare.title = "Stop presenting";
+        window._socket.emit("screen_share", { sharing: true });
+
+        // If the user stops sharing via the browser's native "Stop sharing"
+        // control (rather than our button), fall back cleanly too.
+        screenTrack.onended = () => stopScreenShare();
+      } else {
+        stopScreenShare();
+      }
+    });
+  }
+
+  function stopScreenShare() {
+    if (!screenSharing) return;
+    const restoreTrack = window._cameraOrBackgroundTrack || window._originalVideoTrack;
+    window.replaceOutgoingVideoTrack(restoreTrack);
+    window.setLocalVideoTrack(restoreTrack);
+    screenSharing = false;
+    btnScreenShare.classList.remove("active-on");
+    btnScreenShare.title = "Share your screen";
+    window._socket.emit("screen_share", { sharing: false });
+  }
+
+  /* ---------------- Virtual backgrounds ---------------- */
+  const btnBackground = document.getElementById("btn-background");
+  const backgroundMenu = document.getElementById("background-menu");
+  if (btnBackground && backgroundMenu) {
+    btnBackground.addEventListener("click", () => {
+      backgroundMenu.classList.toggle("open");
+    });
+    backgroundMenu.querySelectorAll("[data-bg-mode]").forEach((opt) => {
+      opt.addEventListener("click", async () => {
+        const bgMode = opt.dataset.bgMode;
+        const bgImage = opt.dataset.bgImage || null;
+        backgroundMenu.querySelectorAll("[data-bg-mode]").forEach((o) => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        backgroundMenu.classList.remove("open");
+        if (window.VirtualBackground) {
+          await window.VirtualBackground.setMode(bgMode, bgImage);
+        }
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!backgroundMenu.contains(e.target) && e.target !== btnBackground) {
+        backgroundMenu.classList.remove("open");
+      }
+    });
+  }
 
   btnMic.addEventListener("click", () => {
     if (!window.localStream) return;

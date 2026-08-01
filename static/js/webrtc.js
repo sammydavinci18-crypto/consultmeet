@@ -6,6 +6,10 @@
     the server — it flows directly between browsers (peer-to-peer).
   - Whoever is the meeting's host always renders into the large "spotlight" tile.
     Everyone else renders into the small filmstrip tiles below.
+  - Non-host participants wait for host approval (lobby/waiting room) before
+    joining the mesh, unless no host is in the room yet.
+  - View can be toggled between "speaker" (spotlight + filmstrip) and
+    "gallery" (uniform grid) — see setViewMode() below.
 */
 
 const ICE_SERVERS = {
@@ -13,13 +17,22 @@ const ICE_SERVERS = {
 };
 
 const socket = io();
+window._socket = socket;
 
 let localStream = null;
 const peerConnections = {}; // sid -> RTCPeerConnection
 const peerMeta = {}; // sid -> { name, isHost }
 window._remoteStreams = {}; // sid -> { stream, name, isHost } — read by recorder.js
+window.peerConnections = peerConnections;
+window.peerMeta = peerMeta;
 
 const { roomCode, isHost, userName, hostName } = window.ROOM_CONFIG;
+
+let viewMode = "speaker"; // "speaker" | "gallery"
+
+function notifyParticipantsChanged() {
+  window.dispatchEvent(new CustomEvent("participants-changed"));
+}
 
 async function initMedia() {
   try {
@@ -30,6 +43,10 @@ async function initMedia() {
   }
 
   window._localStreamRef = localStream;
+  window._originalVideoTrack = localStream.getVideoTracks()[0] || null;
+  // What we send when NOT screen sharing — plain camera by default, swapped
+  // out by background.js when a virtual background is turned on.
+  window._cameraOrBackgroundTrack = window._originalVideoTrack;
 
   // Show my own video immediately: spotlight if I'm the host, filmstrip otherwise.
   if (isHost) {
@@ -38,8 +55,25 @@ async function initMedia() {
     upsertFilmstripTile("local", localStream, `${userName} (you)`, false);
   }
 
-  socket.emit("join", { room_code: roomCode });
+  socket.emit("request_to_join", { room_code: roomCode });
 }
+
+socket.on("join_approved", () => {
+  window.dispatchEvent(new CustomEvent("admitted"));
+  socket.emit("join", { room_code: roomCode });
+});
+
+socket.on("waiting_for_host", () => {
+  window.dispatchEvent(new CustomEvent("waiting-for-host"));
+});
+
+socket.on("join_denied", () => {
+  window.dispatchEvent(new CustomEvent("join-denied"));
+});
+
+socket.on("join_request", (data) => {
+  window.dispatchEvent(new CustomEvent("join-request", { detail: data }));
+});
 
 function createPeerConnection(targetSid, meta) {
   const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -65,6 +99,7 @@ function createPeerConnection(targetSid, meta) {
     } else {
       upsertFilmstripTile(targetSid, stream, meta.name, true);
     }
+    if (viewMode === "gallery") renderGalleryView();
   };
 
   pc.onconnectionstatechange = () => {
@@ -73,6 +108,7 @@ function createPeerConnection(targetSid, meta) {
     }
   };
 
+  notifyParticipantsChanged();
   return pc;
 }
 
@@ -92,6 +128,7 @@ socket.on("existing_peers", async ({ peers }) => {
 socket.on("peer_joined", ({ sid, name, is_host }) => {
   // The newcomer will call us (see existing_peers on their side), so we just wait.
   peerMeta[sid] = { name, isHost: is_host };
+  notifyParticipantsChanged();
 });
 
 socket.on("signal", async ({ sender, signal }) => {
@@ -134,7 +171,34 @@ function teardownPeer(sid) {
   } else {
     removeFilmstripTile(sid);
   }
+  notifyParticipantsChanged();
+  if (viewMode === "gallery") renderGalleryView();
 }
+
+/* ---------------- Screen share / virtual background support ---------------- */
+
+// Swaps the outgoing video track on every open peer connection (used by
+// screen sharing and virtual backgrounds — anything that needs to replace
+// what we're sending without a full renegotiation).
+window.replaceOutgoingVideoTrack = function (newTrack) {
+  Object.values(peerConnections).forEach((pc) => {
+    const sender = pc.getSenders().find((s) => s.track && s.track.kind === "video");
+    if (sender) sender.replaceTrack(newTrack);
+  });
+};
+
+// Swaps the video track inside localStream itself, so every <video> element
+// bound via srcObject=localStream (spotlight/filmstrip self-preview) updates
+// automatically without re-binding.
+window.setLocalVideoTrack = function (newTrack) {
+  const oldTrack = localStream.getVideoTracks()[0];
+  if (oldTrack) localStream.removeTrack(oldTrack);
+  if (newTrack) localStream.addTrack(newTrack);
+};
+
+window.getLocalStream = function () {
+  return localStream;
+};
 
 /* ---------------- DOM rendering ---------------- */
 
@@ -178,6 +242,7 @@ function upsertFilmstripTile(key, stream, name, isRemote) {
     document.getElementById("filmstrip").appendChild(tile);
   }
   tile.innerHTML = "";
+  tile.dataset.name = name;
 
   const video = document.createElement("video");
   video.autoplay = true;
@@ -190,6 +255,8 @@ function upsertFilmstripTile(key, stream, name, isRemote) {
   label.className = "tile-label";
   label.textContent = name;
   tile.appendChild(label);
+
+  if (viewMode === "gallery") renderGalleryView();
 }
 
 function removeFilmstripTile(key) {
@@ -205,5 +272,91 @@ function removeFilmstripTile(key) {
     strip.appendChild(empty);
   }
 }
+
+// Sets/clears a small ✋ badge on a participant's tile label.
+window.setTileHandRaised = function (sid, raised) {
+  const key = sid === "local" ? "local" : sid;
+  const isSpotlightSelf = isHost && sid === "local";
+  const isSpotlightHost = peerMeta[sid] && peerMeta[sid].isHost;
+
+  let labelEl;
+  if (isSpotlightSelf || isSpotlightHost) {
+    labelEl = document.getElementById("spotlight-label");
+  } else {
+    const tile = document.getElementById(`tile-${key}`);
+    labelEl = tile ? tile.querySelector(".tile-label") : null;
+  }
+  if (!labelEl) return;
+
+  const existingBadge = labelEl.querySelector(".hand-badge");
+  if (raised && !existingBadge) {
+    const badge = document.createElement("span");
+    badge.className = "hand-badge";
+    badge.textContent = " ✋";
+    labelEl.appendChild(badge);
+  } else if (!raised && existingBadge) {
+    existingBadge.remove();
+  }
+};
+
+// Sets/clears a "Presenting" badge on a participant's tile.
+window.setTileScreenSharing = function (sid, sharing) {
+  const tile = peerMeta[sid] && peerMeta[sid].isHost
+    ? document.getElementById("spotlight-tile")
+    : document.getElementById(`tile-${sid}`);
+  if (!tile) return;
+  let badge = tile.querySelector(".presenting-badge");
+  if (sharing && !badge) {
+    badge = document.createElement("div");
+    badge.className = "presenting-badge";
+    badge.textContent = "🖥️ Presenting";
+    tile.appendChild(badge);
+  } else if (!sharing && badge) {
+    badge.remove();
+  }
+};
+
+/* ---------------- View mode: speaker vs gallery ---------------- */
+
+window.setViewMode = function (mode) {
+  viewMode = mode;
+  const stageArea = document.getElementById("stage-area");
+  const gallery = document.getElementById("gallery-grid");
+  if (mode === "gallery") {
+    stageArea.style.display = "none";
+    gallery.style.display = "grid";
+    renderGalleryView();
+  } else {
+    gallery.style.display = "none";
+    stageArea.style.display = "flex";
+    // Move tiles back to their normal homes (moving, not cloning, keeps
+    // the <video> elements' live playback state intact).
+    document.querySelector(".stage-area").insertBefore(
+      document.getElementById("spotlight-tile"),
+      document.getElementById("filmstrip-wrap")
+    );
+    const filmstrip = document.getElementById("filmstrip");
+    Array.from(gallery.querySelectorAll(".mini-tile")).forEach((t) => filmstrip.appendChild(t));
+    if (!filmstrip.querySelector(".mini-tile")) {
+      const empty = document.createElement("div");
+      empty.className = "filmstrip-empty";
+      empty.id = "filmstrip-empty";
+      empty.textContent = "Waiting for others to join…";
+      filmstrip.appendChild(empty);
+    }
+  }
+  window.dispatchEvent(new CustomEvent("view-mode-changed", { detail: { mode } }));
+};
+
+function renderGalleryView() {
+  const gallery = document.getElementById("gallery-grid");
+  const spotlight = document.getElementById("spotlight-tile");
+  gallery.appendChild(spotlight); // move (not clone) — preserves video playback
+  document.querySelectorAll("#filmstrip .mini-tile").forEach((t) => gallery.appendChild(t));
+}
+
+window.getViewMode = function () {
+  return viewMode;
+};
 
 initMedia();

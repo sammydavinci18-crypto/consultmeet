@@ -51,8 +51,10 @@ function drawFrame() {
   ctx.strokeStyle = "#2B3E45";
   ctx.strokeRect(0, 0, SPOTLIGHT_W, CANVAS_H);
 
-  // Participant grid — reuse the actual tile <video> elements from the filmstrip.
-  const tiles = Array.from(document.querySelectorAll("#filmstrip .mini-tile video"));
+  // Participant grid — reuse the actual tile <video> elements. Selecting by
+  // class (not "#filmstrip .mini-tile") so this keeps working even when
+  // gallery view has moved the tiles into #gallery-grid.
+  const tiles = Array.from(document.querySelectorAll(".mini-tile video"));
   const gridX = SPOTLIGHT_W + 12;
   const gridW = CANVAS_W - gridX;
   if (tiles.length > 0) {
