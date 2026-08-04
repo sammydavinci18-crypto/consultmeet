@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Liwec · Light-way Education Consultancy{% endblock %}
+{% block page_class %}landing-page{% endblock %}
+
+{% block topheader %}
+<header class="landing-nav">
+  <a class="brand brand-on-dark" href="{{ url_for('main.index') }}">
+    <span class="brand-mark"></span>
+    Liwec
+  </a>
+  <nav class="landing-nav-links">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How it works</a>
+  </nav>
+  <div class="landing-nav-actions">
+    <a class="btn btn-ghost-dark btn-sm" href="{{ url_for('auth.login') }}">Log in</a>
+    <a class="btn btn-amber btn-sm" href="{{ url_for('auth.register') }}">Get started</a>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <span class="eyebrow">Light-way Education Consultancy</span>
+    <h1>Find your way.<br>We'll help you see it.</h1>
+    <p class="hero-sub">
+      Liwec puts you face-to-face with an education consultant over live video —
+      for university applications, study-abroad plans, visas, or the career
+      decision you've been putting off. Book a session, talk it through, and
+      leave with a clear next step.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-amber btn-lg" href="{{ url_for('auth.register') }}">Get started free</a>
+      <a class="btn btn-ghost-dark btn-lg" href="{{ url_for('meetings.join_meeting') }}">I have a room code</a>
+    </div>
+  </div>
+</section>
+
+<section class="section-band" id="features">
+  <div class="section-inner">
+    <span class="eyebrow eyebrow-dark">Everything a consultation needs</span>
+    <h2>Built for the actual conversation, not just the call.</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon" data-icon="video"></div>
+        <h3>Live video, face-to-face</h3>
+        <p>Clear, direct video consultations — no downloads, no accounts for your student to install, just a link.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" data-icon="screenShare"></div>
+        <h3>Review documents together</h3>
+        <p>Share your screen to go through applications, essays, or transcripts side by side in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" data-icon="notes"></div>
+        <h3>Notes that stay with the session</h3>
+        <p>Write down guidance as you talk. It's saved to that consultation, ready to revisit later.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" data-icon="record"></div>
+        <h3>Recordings, on your terms</h3>
+        <p>Choose to record a session so your student can watch the advice back — nothing records without you deciding to.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" data-icon="users"></div>
+        <h3>A waiting room that respects the schedule</h3>
+        <p>People wait to be let in, so one consultation doesn't spill into the next.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" data-icon="grid"></div>
+        <h3>Works wherever they open it</h3>
+        <p>Phone, tablet, or laptop — the call adapts, so nobody needs to be at a desk to join.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-band section-steps" id="how-it-works">
+  <div class="section-inner">
+    <span class="eyebrow eyebrow-dark">How a consultation happens</span>
+    <h2>Three steps. That's the whole process.</h2>
+    <div class="steps-path">
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>Book the session</h3>
+        <p>Create a consultation and set a time — Liwec gives you a room code to share.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>Meet by video</h3>
+        <p>Your student joins with the code, waits to be let in, and you talk it through — camera on, screen shared, whatever the conversation needs.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>Leave with a plan</h3>
+        <p>Notes and, if you chose to record, the session itself stay attached to that consultation — so the guidance doesn't get lost after the call ends.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="section-inner cta-inner">
+    <h2>Ready to find your way forward?</h2>
+    <p>Set up your first consultation in under a minute.</p>
+    <a class="btn btn-amber btn-lg" href="{{ url_for('auth.register') }}">Create your free account</a>
+  </div>
+</section>
+
+<footer class="landing-footer">
+  <div class="section-inner footer-inner">
+    <a class="brand brand-on-dark" href="{{ url_for('main.index') }}">
+      <span class="brand-mark"></span>
+      Liwec
+    </a>
+    <p>Light-way Education Consultancy · © {{ current_year }} Liwec</p>
+  </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/icons.js') }}"></script>
+{% endblock %}

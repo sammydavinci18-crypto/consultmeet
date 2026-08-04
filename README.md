@@ -1,4 +1,4 @@
-# ConsultMeet
+# Liwec — Light-way Education Consultancy
 
 A simple, self-contained video-consultation app: one Flask process serves the
 pages **and** handles real-time signaling (no separate backend/frontend

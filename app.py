@@ -2,6 +2,7 @@ import sys
 
 from flask import Flask
 from flask_login import LoginManager
+from datetime import datetime, timezone
 
 from config import Config
 from extensions import db, login_manager, socketio
@@ -22,6 +23,10 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.context_processor
+    def inject_current_year():
+        return {"current_year": datetime.now(timezone.utc).year}
 
     from routes.auth import auth_bp
     from routes.main import main_bp
