@@ -85,6 +85,20 @@ button, input, textarea, select { font-family: inherit; }
   display: inline-block;
 }
 
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.brand-block:hover { text-decoration: none; }
+.brand-tagline {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  padding-left: 30px; /* aligns under the wordmark, past the brand-mark square */
+}
+
 .topnav { display: flex; align-items: center; gap: 16px; }
 .topnav-user { color: var(--ink-soft); font-size: 0.9rem; font-weight: 500; }
 
@@ -305,6 +319,9 @@ button, input, textarea, select { font-family: inherit; }
 }
 @media (prefers-reduced-motion: reduce) {
   .live-dot::before { animation: none; }
+  .hero-glow { animation: none; }
+  .steps-path::before { animation: none; }
+  .reveal { transition: none; opacity: 1; transform: none; }
 }
 
 .room-body {
@@ -868,6 +885,7 @@ button, input, textarea, select { font-family: inherit; }
   .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
   .topnav { gap: 10px; }
   .topnav-user { display: none; } /* name isn't essential chrome at this width */
+  .brand-tagline { display: none; }
 
   .page { padding: 24px 16px 56px; }
   .dash-head { flex-direction: column; align-items: flex-start; }
@@ -1128,4 +1146,201 @@ button, input, textarea, select { font-family: inherit; }
   .feature-grid { grid-template-columns: 1fr; }
   .cta-band { padding: 56px 20px; }
   .footer-inner { flex-direction: column; align-items: flex-start; }
+}
+
+/* =========================================================================
+   Interactive track switcher — "Education administration" / "Business"
+   ========================================================================= */
+.track-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  margin-bottom: 36px;
+}
+.track-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.track-tab .icon { width: 16px; height: 16px; display: block; }
+.track-tab .icon svg { width: 100%; height: 100%; }
+.track-tab:hover { color: var(--ink); }
+.track-tab.is-active { background: var(--teal); color: #fff; }
+
+.track-panel {
+  display: none;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+.track-panel.is-active { display: grid; }
+.track-panel-text h3 { margin-bottom: 10px; }
+.track-panel-text p { margin: 0; }
+
+.track-topics {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.track-topics li {
+  padding: 12px 16px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* =========================================================================
+   Split-screen auth pages (login / register) — branding panel + form
+   ========================================================================= */
+.page.auth-split-page { max-width: none; padding: 0; min-height: 100vh; min-height: 100dvh; }
+
+.auth-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.auth-branding {
+  position: relative;
+  background: linear-gradient(180deg, var(--stage) 0%, #0B141A 100%);
+  overflow: hidden;
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.auth-glow {
+  top: -160px;
+  left: -80px;
+  transform: none;
+  width: 480px;
+  height: 420px;
+}
+.auth-branding-tagline {
+  color: var(--amber);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 22px 0 14px;
+  position: relative;
+}
+.auth-branding h2 {
+  position: relative;
+  color: #fff;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  max-width: 380px;
+  margin-bottom: 32px;
+}
+.auth-branding-points {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 16px;
+}
+.auth-branding-points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #D6E4E0;
+  font-size: 0.9rem;
+}
+.auth-branding-points .icon {
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  color: var(--amber);
+}
+.auth-branding-points .icon svg { width: 16px; height: 16px; }
+
+.auth-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  background: var(--paper);
+}
+.auth-form-side .auth-card { box-shadow: none; border: 1px solid var(--line); }
+
+/* =========================================================================
+   Motion touches — small, purposeful, all skip under prefers-reduced-motion
+   ========================================================================= */
+
+/* The hero glow breathes gently, like light rather than a static graphic */
+.hero-glow {
+  animation: glow-breathe 6s ease-in-out infinite;
+}
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+.auth-glow { animation: glow-breathe-static 6s ease-in-out infinite; }
+@keyframes glow-breathe-static {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* The dashed line connecting the 3 steps slowly "flows" — a small nod to
+   the brand name (light finding its way along the path) */
+.steps-path::before {
+  animation: path-flow 3.5s linear infinite;
+}
+@keyframes path-flow {
+  from { background-position: 0 0; }
+  to { background-position: 18px 0; }
+}
+
+/* Feature cards lift slightly on hover — cheap, tasteful affordance */
+.feature-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(20, 40, 36, 0.12); }
+
+/* Scroll reveal */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* =========================================================================
+   Responsive: track switcher and auth split
+   ========================================================================= */
+@media (max-width: 900px) {
+  .track-panel.is-active { grid-template-columns: 1fr; gap: 20px; }
+}
+
+@media (max-width: 780px) {
+  .auth-split { grid-template-columns: 1fr; }
+  .auth-branding {
+    padding: 28px 24px;
+    min-height: 0;
+  }
+  .auth-branding h2 { font-size: 1.25rem; max-width: none; margin-bottom: 20px; }
+  .auth-branding-points { display: none; } /* keep the mobile branding band short so the form isn't pushed below the fold */
+  .auth-glow { width: 320px; height: 260px; top: -120px; }
+  .auth-form-side { padding: 32px 20px 48px; }
+}
+
+@media (max-width: 640px) {
+  .track-switch { flex-direction: column; width: 100%; border-radius: var(--radius-md); }
+  .track-tab { justify-content: center; }
 }

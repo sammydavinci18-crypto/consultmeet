@@ -1,25 +1,48 @@
 {% extends "base.html" %}
 {% block title %}Log in · Liwec{% endblock %}
-{% block page_class %}auth-page{% endblock %}
+{% block page_class %}auth-split-page{% endblock %}
 
 {% block content %}
-<div class="auth-card">
-  <span class="auth-eyebrow">Liwec</span>
-  <h1>Welcome back</h1>
-  <p class="sub">Log in to host or join a consultation.</p>
+<div class="auth-split">
+  <div class="auth-branding">
+    <div class="hero-glow auth-glow" aria-hidden="true"></div>
+    <a class="brand brand-on-dark" href="{{ url_for('main.index') }}">
+      <span class="brand-mark"></span>
+      Liwec
+    </a>
+    <p class="auth-branding-tagline">Light-way Education Consultancy</p>
+    <h2>Education administration &amp; business consultations, on live video.</h2>
+    <ul class="auth-branding-points">
+      <li><span class="icon" data-icon="graduationCap"></span> Accreditation, policy, and curriculum guidance</li>
+      <li><span class="icon" data-icon="briefcase"></span> Strategy, operations, and growth advisory</li>
+      <li><span class="icon" data-icon="notes"></span> Notes and recordings that stay with the session</li>
+    </ul>
+  </div>
 
-  <form method="POST">
-    <div class="field">
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required autofocus>
-    </div>
-    <div class="field">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary btn-block">Log in</button>
-  </form>
+  <div class="auth-form-side">
+    <div class="auth-card">
+      <span class="auth-eyebrow">Liwec</span>
+      <h1>Welcome back</h1>
+      <p class="sub">Log in to host or join a consultation.</p>
 
-  <p class="auth-switch">Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
+      <form method="POST">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autofocus required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Log in</button>
+      </form>
+
+      <p class="auth-switch">Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/icons.js') }}"></script>
 {% endblock %}

@@ -13,9 +13,12 @@
   {% block topheader %}
   {% if current_user.is_authenticated %}
   <header class="topbar">
-    <a class="brand" href="{{ url_for('main.dashboard') }}">
-      <span class="brand-mark"></span>
-      Liwec
+    <a class="brand-block" href="{{ url_for('main.dashboard') }}">
+      <span class="brand">
+        <span class="brand-mark"></span>
+        Liwec
+      </span>
+      <span class="brand-tagline">Education administration &amp; business consultations</span>
     </a>
     <nav class="topnav">
       <span class="topnav-user">{{ current_user.name }}</span>

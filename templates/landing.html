@@ -9,6 +9,7 @@
     Liwec
   </a>
   <nav class="landing-nav-links">
+    <a href="#tracks">What we cover</a>
     <a href="#features">Features</a>
     <a href="#how-it-works">How it works</a>
   </nav>
@@ -26,10 +27,9 @@
     <span class="eyebrow">Light-way Education Consultancy</span>
     <h1>Find your way.<br>We'll help you see it.</h1>
     <p class="hero-sub">
-      Liwec puts you face-to-face with an education consultant over live video —
-      for university applications, study-abroad plans, visas, or the career
-      decision you've been putting off. Book a session, talk it through, and
-      leave with a clear next step.
+      Liwec puts you face-to-face with an expert consultant over live video —
+      for education administration guidance or business consulting. Book a
+      session, talk it through, and leave with a clear next step.
     </p>
     <div class="hero-actions">
       <a class="btn btn-amber btn-lg" href="{{ url_for('auth.register') }}">Get started free</a>
@@ -38,7 +38,50 @@
   </div>
 </section>
 
-<section class="section-band" id="features">
+<!-- Interactive: two consulting tracks, one platform -->
+<section class="section-band" id="tracks">
+  <div class="section-inner">
+    <span class="eyebrow eyebrow-dark">Two kinds of guidance</span>
+    <h2>Whichever room you need, it's the same platform.</h2>
+
+    <div class="track-switch" role="tablist" aria-label="Consultation type">
+      <button class="track-tab is-active" id="tab-education" role="tab" aria-selected="true" aria-controls="panel-education" data-track="education">
+        <span class="icon" data-icon="graduationCap"></span> Education administration
+      </button>
+      <button class="track-tab" id="tab-business" role="tab" aria-selected="false" aria-controls="panel-business" data-track="business">
+        <span class="icon" data-icon="briefcase"></span> Business consulting
+      </button>
+    </div>
+
+    <div class="track-panel is-active" id="panel-education" role="tabpanel" aria-labelledby="tab-education">
+      <div class="track-panel-text">
+        <h3>For school leaders and institutions</h3>
+        <p>Sit down over video with an education administration consultant to work through accreditation, policy, curriculum strategy, or the operational decisions running a school or institution involves.</p>
+      </div>
+      <ul class="track-topics">
+        <li>Accreditation &amp; compliance review</li>
+        <li>Curriculum &amp; program strategy</li>
+        <li>Institutional policy guidance</li>
+        <li>Staff &amp; leadership development</li>
+      </ul>
+    </div>
+
+    <div class="track-panel" id="panel-business" role="tabpanel" aria-labelledby="tab-business">
+      <div class="track-panel-text">
+        <h3>For founders, teams, and organizations</h3>
+        <p>Get a business consultant's eyes on your strategy, operations, or growth plan — the same live video room, screen sharing, and notes, applied to the decision in front of your business.</p>
+      </div>
+      <ul class="track-topics">
+        <li>Business strategy &amp; planning</li>
+        <li>Operations &amp; process review</li>
+        <li>Growth &amp; market positioning</li>
+        <li>Leadership &amp; team advisory</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section-band section-features" id="features">
   <div class="section-inner">
     <span class="eyebrow eyebrow-dark">Everything a consultation needs</span>
     <h2>Built for the actual conversation, not just the call.</h2>
@@ -46,12 +89,12 @@
       <div class="feature-card">
         <div class="feature-icon" data-icon="video"></div>
         <h3>Live video, face-to-face</h3>
-        <p>Clear, direct video consultations — no downloads, no accounts for your student to install, just a link.</p>
+        <p>Clear, direct video consultations — no downloads, no accounts for your client to install, just a link.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon" data-icon="screenShare"></div>
         <h3>Review documents together</h3>
-        <p>Share your screen to go through applications, essays, or transcripts side by side in real time.</p>
+        <p>Share your screen to go through policies, proposals, or plans side by side in real time.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon" data-icon="notes"></div>
@@ -61,7 +104,7 @@
       <div class="feature-card">
         <div class="feature-icon" data-icon="record"></div>
         <h3>Recordings, on your terms</h3>
-        <p>Choose to record a session so your student can watch the advice back — nothing records without you deciding to.</p>
+        <p>Choose to record a session so your client can watch the advice back — nothing records without you deciding to.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon" data-icon="users"></div>
@@ -90,7 +133,7 @@
       <div class="step">
         <span class="step-num">2</span>
         <h3>Meet by video</h3>
-        <p>Your student joins with the code, waits to be let in, and you talk it through — camera on, screen shared, whatever the conversation needs.</p>
+        <p>Your client joins with the code, waits to be let in, and you talk it through — camera on, screen shared, whatever the conversation needs.</p>
       </div>
       <div class="step">
         <span class="step-num">3</span>
@@ -115,11 +158,12 @@
       <span class="brand-mark"></span>
       Liwec
     </a>
-    <p>Light-way Education Consultancy · © {{ current_year }} Liwec</p>
+    <p>Light-way Education Consultancy · Education administration &amp; business consultations · © {{ current_year }} Liwec</p>
   </div>
 </footer>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/icons.js') }}"></script>
+<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}
