@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Availability · Liwec{% endblock %}
+
+{% block content %}
+<div class="dash-head">
+  <div>
+    <span class="eyebrow eyebrow-dark">Consultant profile</span>
+    <h1>Availability</h1>
+    <p>Open slots show up as pickable times on your public profile. All times are UTC.</p>
+  </div>
+</div>
+
+<div class="profile-layout">
+  <div class="profile-main">
+    <h3>Upcoming slots</h3>
+    {% if slots %}
+    <div class="slot-list">
+      {% for slot in slots %}
+      <div class="slot-row">
+        <span>{{ slot.start_time.strftime('%a, %b %-d · %-I:%M %p') }} – {{ slot.end_time.strftime('%-I:%M %p') }} UTC</span>
+        {% if slot.is_booked %}
+        <span class="status-pill status-confirmed">Booked</span>
+        {% else %}
+        <form method="POST" action="{{ url_for('consultants.delete_availability', slot_id=slot.id) }}">
+          <button type="submit" class="btn btn-ghost btn-sm">Remove</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No upcoming slots — add one to let clients book you directly.</div>
+    {% endif %}
+  </div>
+
+  <div class="profile-side">
+    <div class="booking-card">
+      <h3>Add a slot</h3>
+      <form method="POST">
+        <div class="field">
+          <label for="start_time">Start</label>
+          <input type="datetime-local" id="start_time" name="start_time" required>
+        </div>
+        <div class="field">
+          <label for="end_time">End</label>
+          <input type="datetime-local" id="end_time" name="end_time" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Add slot</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

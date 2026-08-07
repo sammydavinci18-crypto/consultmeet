@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: consultmeet
+    name: liwec
     env: python
     region: oregon          # pick the Render region closest to your Supabase project's region
     plan: starter           # free plan has no persistent disk — see RECORDINGS_DIR note below
@@ -22,7 +22,10 @@ services:
         value: "3.12.7"
       - key: RECORDINGS_DIR
         value: /var/data/recordings
+      - key: VERIFICATION_DOCS_DIR
+        value: /var/data/verification_docs   # consultant ID/certificate uploads — sensitive, never publicly served
     disk:
       name: recordings
       mountPath: /var/data
-      sizeGB: 1                   # bump as needed; only available on paid plans
+      sizeGB: 2                   # bumped from 1GB — now also holds verification document uploads
+

@@ -44,6 +44,8 @@ window.ICONS = {
   graduationCap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5 12 5l10 4.5-10 4.5-10-4.5Z"></path><path d="M6 11.5V17c0 1.4 2.7 3 6 3s6-1.6 6-3v-5.5"></path><path d="M21 9.5V16"></path></svg>`,
 
   arrowRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><path d="m13 5 7 7-7 7"></path></svg>`,
+
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6"></path></svg>`,
 };
 
 // Applies window.ICONS[name] to every element carrying data-icon="name".

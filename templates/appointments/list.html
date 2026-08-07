@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Appointments · Liwec{% endblock %}
+
+{% block content %}
+<div class="dash-head">
+  <div>
+    <span class="eyebrow eyebrow-dark">Bookings</span>
+    <h1>Appointments</h1>
+    <p>Requests you've sent, and requests waiting on you to respond to.</p>
+  </div>
+</div>
+
+{% if as_consultant %}
+<h3 class="section-heading">Requests you've received</h3>
+<div class="appointment-list">
+  {% for appt in as_consultant %}
+  <div class="appointment-row">
+    <div>
+      <strong>{{ appt.client.name }}</strong>
+      <span class="appt-time">
+        {% if appt.requested_time %}{{ appt.requested_time.strftime('%a, %b %-d · %-I:%M %p') }} UTC{% else %}No time proposed{% endif %}
+      </span>
+      {% if appt.client_note %}<p class="appt-note">"{{ appt.client_note }}"</p>{% endif %}
+      <span class="appt-price">{{ appt.price_display() }}</span>
+    </div>
+    <div class="appt-actions">
+      <span class="status-pill status-{{ appt.status }}">{{ appt.status|capitalize }}</span>
+      {% if appt.status == 'pending' %}
+      <form method="POST" action="{{ url_for('appointments.confirm', appointment_id=appt.id) }}">
+        <button type="submit" class="btn btn-primary btn-sm">Confirm</button>
+      </form>
+      <form method="POST" action="{{ url_for('appointments.decline', appointment_id=appt.id) }}">
+        <button type="submit" class="btn btn-ghost btn-sm">Decline</button>
+      </form>
+      {% elif appt.status == 'confirmed' and appt.meeting %}
+      <a class="btn btn-primary btn-sm" href="{{ url_for('meetings.room', room_code=appt.meeting.room_code) }}">Join call</a>
+      <form method="POST" action="{{ url_for('appointments.cancel', appointment_id=appt.id) }}">
+        <button type="submit" class="btn btn-ghost btn-sm">Cancel</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<h3 class="section-heading">Requests you've sent</h3>
+{% if as_client %}
+<div class="appointment-list">
+  {% for appt in as_client %}
+  <div class="appointment-row">
+    <div>
+      <strong>{{ appt.consultant.name }}</strong>
+      <span class="appt-time">
+        {% if appt.requested_time %}{{ appt.requested_time.strftime('%a, %b %-d · %-I:%M %p') }} UTC{% else %}No time proposed{% endif %}
+      </span>
+      <span class="appt-price">{{ appt.price_display() }}</span>
+    </div>
+    <div class="appt-actions">
+      <span class="status-pill status-{{ appt.status }}">{{ appt.status|capitalize }}</span>
+      {% if appt.status == 'confirmed' and appt.meeting %}
+      <a class="btn btn-primary btn-sm" href="{{ url_for('meetings.room', room_code=appt.meeting.room_code) }}">Join call</a>
+      {% endif %}
+      {% if appt.status in ('pending', 'confirmed') %}
+      <form method="POST" action="{{ url_for('appointments.cancel', appointment_id=appt.id) }}">
+        <button type="submit" class="btn btn-ghost btn-sm">Cancel</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">You haven't requested any consultations yet. <a href="{{ url_for('consultants.directory') }}">Browse consultants</a>.</div>
+{% endif %}
+{% endblock %}

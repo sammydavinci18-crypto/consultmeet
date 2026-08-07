@@ -6,7 +6,11 @@ from datetime import datetime, timezone
 
 from config import Config
 from extensions import db, login_manager, socketio
-from models import User, Meeting, MeetingParticipant, ConsultationNote, Recording  # noqa: F401
+from models import (
+    User, Meeting, MeetingParticipant, ConsultationNote, Recording,
+    ConsultantProfile, VerificationDocument, AvailabilitySlot, Appointment,
+    Conversation, DirectMessage,
+)  # noqa: F401
 # ^ every model is imported explicitly (not just User) so db.create_all()
 #   below actually knows about every table, not just whichever one
 #   happened to be imported elsewhere already.
@@ -31,10 +35,18 @@ def create_app():
     from routes.auth import auth_bp
     from routes.main import main_bp
     from routes.meetings import meetings_bp
+    from routes.consultants import consultants_bp
+    from routes.appointments import appointments_bp
+    from routes.messages import messages_bp
+    from routes.admin import admin_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(meetings_bp)
+    app.register_blueprint(consultants_bp)
+    app.register_blueprint(appointments_bp)
+    app.register_blueprint(messages_bp)
+    app.register_blueprint(admin_bp)
 
     # Registers the Socket.IO event handlers defined in sockets.py
     import sockets  # noqa: F401
@@ -57,6 +69,22 @@ def create_app():
         with app.app_context():
             db.create_all()
         print("Database tables created.")
+
+    @app.cli.command("make-admin")
+    def make_admin():
+        """Promote a user to admin so they can review consultant verification
+        requests. Run with: flask --app app make-admin <email>
+        There's deliberately no web route that can do this — admin access is
+        only ever granted from the server/CLI side."""
+        import click
+        email = click.prompt("Email of the user to promote")
+        user = User.query.filter_by(email=email.strip().lower()).first()
+        if not user:
+            print(f"No user found with email {email}")
+            return
+        user.role = "admin"
+        db.session.commit()
+        print(f"{user.name} ({user.email}) is now an admin.")
 
     return app
 

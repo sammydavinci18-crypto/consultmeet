@@ -99,8 +99,8 @@ button, input, textarea, select { font-family: inherit; }
   padding-left: 30px; /* aligns under the wordmark, past the brand-mark square */
 }
 
-.topnav { display: flex; align-items: center; gap: 16px; }
-.topnav-user { color: var(--ink-soft); font-size: 0.9rem; font-weight: 500; }
+.topnav { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; row-gap: 8px; }
+.topnav-user { color: var(--ink-soft); font-size: 0.9rem; font-weight: 500; white-space: nowrap; }
 
 /* =========================================================
    Buttons
@@ -883,7 +883,8 @@ button, input, textarea, select { font-family: inherit; }
 /* ---- Global chrome (top bar, dashboard, auth) from tablet width down ---- */
 @media (max-width: 720px) {
   .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
-  .topnav { gap: 10px; }
+  .topnav { gap: 10px; row-gap: 6px; }
+  .topnav-link { font-size: 0.82rem; }
   .topnav-user { display: none; } /* name isn't essential chrome at this width */
   .brand-tagline { display: none; }
 
@@ -1343,4 +1344,239 @@ button, input, textarea, select { font-family: inherit; }
 @media (max-width: 640px) {
   .track-switch { flex-direction: column; width: 100%; border-radius: var(--radius-md); }
   .track-tab { justify-content: center; }
+}
+
+/* =========================================================================
+   Consultant marketplace — directory, profiles, booking, messaging, admin
+   ========================================================================= */
+
+.topnav-link { color: var(--ink-soft); font-weight: 600; font-size: 0.88rem; white-space: nowrap; }
+.topnav-link:hover { color: var(--ink); text-decoration: none; }
+.topnav-admin { color: var(--amber); }
+
+.back-link { display: inline-block; margin-bottom: 20px; color: var(--ink-soft); font-weight: 600; font-size: 0.88rem; }
+.section-heading { margin: 32px 0 14px; font-size: 1.05rem; }
+
+/* ---- Marketplace promo card on the dashboard ---- */
+.marketplace-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  margin-bottom: 36px;
+}
+.marketplace-promo h3 { font-size: 1.02rem; margin-bottom: 4px; }
+.marketplace-promo p { margin: 0; font-size: 0.88rem; }
+.marketplace-promo-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---- Directory grid ---- */
+.consultant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+.consultant-card {
+  display: block;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.consultant-card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(20,40,36,0.1); text-decoration: none; }
+.consultant-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.consultant-card h3 { font-size: 1.02rem; margin-bottom: 4px; }
+.consultant-headline { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 12px; }
+.consultant-card-price { margin-top: 14px; font-weight: 700; color: var(--teal-deep); }
+
+.avatar-circle {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), var(--teal-deep));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.avatar-circle-lg { width: 64px; height: 64px; font-size: 1.4rem; }
+
+.verified-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--teal-tint);
+  color: var(--teal-deep);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 20px;
+}
+.verified-badge .icon { width: 12px; height: 12px; }
+.verified-badge .icon svg { width: 100%; height: 100%; }
+
+.vertical-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 20px;
+  background: var(--amber-tint);
+  color: #8a5a1f;
+}
+.vertical-pill.vertical-business { background: var(--teal-tint); color: var(--teal-deep); }
+.vertical-pill.vertical-both { background: var(--paper); color: var(--ink-soft); border: 1px solid var(--line); }
+
+/* ---- Public consultant profile ---- */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 32px;
+  align-items: start;
+  margin-top: 24px;
+}
+.profile-header { display: flex; align-items: center; gap: 18px; margin-bottom: 24px; }
+.profile-header h1 { font-size: 1.5rem; margin-bottom: 4px; }
+.profile-badges { display: flex; gap: 8px; margin-top: 8px; }
+.profile-bio { line-height: 1.65; margin-bottom: 24px; white-space: pre-wrap; }
+.profile-actions { margin-top: 20px; }
+
+.price-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+.price-amount { display: block; font-family: var(--font-display); font-size: 1.5rem; color: var(--teal-deep); margin-bottom: 8px; }
+.price-note { font-size: 0.8rem; color: var(--ink-soft); margin: 0; }
+
+.booking-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+}
+.booking-card h3 { margin-bottom: 14px; }
+.or-divider { text-align: center; color: var(--ink-soft); font-size: 0.8rem; margin: 4px 0 14px; }
+
+.profile-summary-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  margin-top: 20px;
+}
+.profile-summary-card p { margin-bottom: 10px; }
+
+/* ---- Status pills (appointments + verification) ---- */
+.status-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+.status-pending { background: var(--amber-tint); color: #8a5a1f; }
+.status-approved, .status-confirmed, .status-completed { background: var(--teal-tint); color: var(--teal-deep); }
+.status-rejected, .status-declined, .status-cancelled { background: #FBE7E4; color: var(--danger); }
+
+/* ---- Appointment / admin queue rows (shared list pattern) ---- */
+.appointment-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+.appointment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+}
+.appointment-row strong { display: block; margin-bottom: 2px; }
+.appt-time { display: block; font-size: 0.82rem; color: var(--ink-soft); }
+.appt-note { font-size: 0.84rem; color: var(--ink-soft); margin: 4px 0 0; font-style: italic; }
+.appt-price { display: inline-block; margin-top: 6px; font-weight: 700; font-size: 0.86rem; color: var(--teal-deep); }
+.appt-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ---- Availability slots ---- */
+.slot-list { display: flex; flex-direction: column; gap: 8px; }
+.slot-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+/* ---- Messaging inbox + thread ---- */
+.conversation-list { display: flex; flex-direction: column; gap: 8px; }
+.conversation-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  color: var(--ink);
+}
+.conversation-row:hover { border-color: var(--teal); text-decoration: none; }
+.conversation-preview strong { display: block; margin-bottom: 2px; }
+.conversation-preview p { margin: 0; font-size: 0.86rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60ch; }
+
+.thread-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 680px;
+}
+.thread-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.thread-messages { display: flex; flex-direction: column; gap: 12px; min-height: 200px; margin-bottom: 20px; }
+.thread-messages .chat-item-self { align-self: flex-end; text-align: right; }
+.thread-form { display: flex; gap: 10px; align-items: flex-end; }
+.thread-form textarea { flex: 1; min-height: 44px; max-height: 140px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9rem; resize: vertical; }
+
+/* ---- Admin document list ---- */
+.doc-list { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.doc-list li a {
+  display: inline-block;
+  padding: 10px 14px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.doc-list-note { font-size: 0.8rem; color: var(--ink-soft); margin-top: 6px; }
+.reject-form { margin-top: 12px; }
+
+/* ---- Wider auth-style card for multi-field forms ---- */
+.auth-card-wide { max-width: 560px; }
+.field-row { display: grid; grid-template-columns: 1.4fr 1fr 0.9fr; gap: 14px; }
+
+/* =========================================================================
+   Responsive: marketplace pages
+   ========================================================================= */
+@media (max-width: 900px) {
+  .profile-layout { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .consultant-grid { grid-template-columns: 1fr; }
+  .marketplace-promo { flex-direction: column; align-items: flex-start; }
+  .appointment-row { flex-direction: column; align-items: flex-start; }
+  .appt-actions { width: 100%; }
+  .conversation-preview p { max-width: 40ch; }
 }

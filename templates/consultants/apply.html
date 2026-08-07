@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Become a consultant · Liwec{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-card auth-card-wide">
+  <span class="auth-eyebrow">Liwec</span>
+  <h1>{{ "Update your application" if existing else "Become a consultant" }}</h1>
+  <p class="sub">
+    {% if existing and existing.status == 'pending' %}
+      Your application is under review. You can update it below while you wait.
+    {% elif existing and existing.status == 'rejected' %}
+      Your last application wasn't approved{% if existing.review_note %} — reviewer note: "{{ existing.review_note }}"{% endif %}. Update your details and documents and re-submit.
+    {% else %}
+      Tell clients what you consult on, then upload a document (ID or certificate) so we can verify you before your profile goes live.
+    {% endif %}
+  </p>
+
+  <form method="POST" enctype="multipart/form-data">
+    <div class="field">
+      <label for="headline">Headline</label>
+      <input type="text" id="headline" name="headline" placeholder="e.g. Accreditation &amp; curriculum strategy consultant" value="{{ existing.headline if existing else '' }}" required>
+    </div>
+    <div class="field">
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" rows="4" placeholder="Your background and what you help clients with." required>{{ existing.bio if existing else '' }}</textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="vertical">Consultation type</label>
+        <select id="vertical" name="vertical">
+          <option value="education" {{ 'selected' if existing and existing.vertical == 'education' }}>Education administration</option>
+          <option value="business" {{ 'selected' if existing and existing.vertical == 'business' }}>Business consulting</option>
+          <option value="both" {{ 'selected' if existing and existing.vertical == 'both' }}>Both</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="price_amount">Price (USD)</label>
+        <input type="number" min="0" step="1" id="price_amount" name="price_amount" placeholder="150" value="{{ existing.price_amount if existing and existing.price_amount else '' }}">
+      </div>
+      <div class="field">
+        <label for="price_unit">Per</label>
+        <select id="price_unit" name="price_unit">
+          <option value="session" {{ 'selected' if existing and existing.price_unit == 'session' }}>Session</option>
+          <option value="hour" {{ 'selected' if existing and existing.price_unit == 'hour' }}>Hour</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="documents">Verification documents (ID or professional certificate — PDF, PNG, or JPG)</label>
+      <input type="file" id="documents" name="documents" multiple accept=".pdf,.png,.jpg,.jpeg">
+      {% if existing and existing.documents %}
+      <p class="doc-list-note">Already on file: {{ existing.documents|length }} document(s). Uploading new ones adds to that — it won't remove what's there.</p>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">{{ "Update application" if existing else "Submit application" }}</button>
+  </form>
+</div>
+{% endblock %}

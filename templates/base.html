@@ -21,6 +21,12 @@
       <span class="brand-tagline">Education administration &amp; business consultations</span>
     </a>
     <nav class="topnav">
+      <a class="topnav-link" href="{{ url_for('consultants.directory') }}">Find a consultant</a>
+      <a class="topnav-link" href="{{ url_for('messages.inbox') }}">Messages</a>
+      <a class="topnav-link" href="{{ url_for('appointments.my_appointments') }}">Appointments</a>
+      {% if current_user.is_admin %}
+      <a class="topnav-link topnav-admin" href="{{ url_for('admin.queue') }}">Admin</a>
+      {% endif %}
       <span class="topnav-user">{{ current_user.name }}</span>
       <a class="btn btn-ghost btn-sm" href="{{ url_for('auth.logout') }}">Log out</a>
     </nav>

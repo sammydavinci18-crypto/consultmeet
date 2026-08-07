@@ -14,6 +14,21 @@
   </div>
 </div>
 
+<div class="marketplace-promo">
+  <div>
+    <h3>Looking for a consultant, or want to become one?</h3>
+    <p>Browse verified education administration and business consultants, or apply to be listed yourself.</p>
+  </div>
+  <div class="marketplace-promo-actions">
+    <a class="btn btn-ghost" href="{{ url_for('consultants.directory') }}">Browse consultants</a>
+    {% if current_user.consultant_profile %}
+    <a class="btn btn-primary" href="{{ url_for('consultants.my_profile') }}">My consultant profile</a>
+    {% else %}
+    <a class="btn btn-primary" href="{{ url_for('consultants.apply') }}">Become a consultant</a>
+    {% endif %}
+  </div>
+</div>
+
 <div class="section-label">Meetings you host</div>
 {% if hosted %}
   <div class="meeting-grid">

@@ -91,5 +91,14 @@ class Config:
     RECORDINGS_DIR = os.environ.get("RECORDINGS_DIR", str(BASE_DIR / "instance" / "recordings"))
     Path(RECORDINGS_DIR).mkdir(parents=True, exist_ok=True)
 
+    # Consultant verification documents (ID, certificates). These are
+    # sensitive — never served from a public /static path; always through
+    # an access-controlled route (see routes/admin.py) that checks the
+    # requester is either the consultant themselves or an admin.
+    VERIFICATION_DOCS_DIR = os.environ.get(
+        "VERIFICATION_DOCS_DIR", str(BASE_DIR / "instance" / "verification_docs")
+    )
+    Path(VERIFICATION_DOCS_DIR).mkdir(parents=True, exist_ok=True)
+
     # Recording is uploaded in ~30s chunks; keep the per-request limit generous.
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50 MB per chunk

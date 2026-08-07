@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ other.name }} · Messages · Liwec{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('messages.inbox') }}">&larr; All messages</a>
+
+<div class="thread-card">
+  <div class="thread-header">
+    <div class="avatar-circle">{{ other.name[0]|upper }}</div>
+    <div>
+      <strong>{{ other.name }}</strong>
+      {% if other.consultant_profile and other.consultant_profile.status == 'approved' %}
+      <p class="sub"><a href="{{ url_for('consultants.profile', user_id=other.id) }}">View consultant profile &rarr;</a></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="thread-messages">
+    {% if not conversation.messages %}
+    <p class="empty-state">No messages yet. Say hello and talk through what you need before booking.</p>
+    {% endif %}
+    {% for m in conversation.messages %}
+    <div class="chat-item {{ 'chat-item-self' if m.sender_id == current_user.id }}">
+      <div class="chat-meta">{{ m.sender.name }} · {{ m.created_at.strftime('%b %-d, %-I:%M %p') }}</div>
+      <div class="chat-bubble">{{ m.content }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <form method="POST" class="thread-form">
+    <textarea name="content" placeholder="Write a message…" required></textarea>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+</div>
+{% endblock %}

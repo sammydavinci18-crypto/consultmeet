@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.user.name }} · Liwec{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('consultants.directory') }}">&larr; Back to consultants</a>
+
+<div class="profile-layout">
+  <div class="profile-main">
+    <div class="profile-header">
+      <div class="avatar-circle avatar-circle-lg">{{ profile.user.name[0]|upper }}</div>
+      <div>
+        <h1>{{ profile.user.name }}</h1>
+        <p class="consultant-headline">{{ profile.headline or "Consultant" }}</p>
+        <div class="profile-badges">
+          {% if profile.status == 'approved' %}
+          <span class="verified-badge"><span class="icon" data-icon="check"></span> Verified</span>
+          {% endif %}
+          <span class="vertical-pill vertical-{{ profile.vertical }}">
+            {% if profile.vertical == 'business' %}Business consulting
+            {% elif profile.vertical == 'both' %}Education &amp; business
+            {% else %}Education administration{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <h3>About</h3>
+    <p class="profile-bio">{{ profile.bio or "This consultant hasn't added a bio yet." }}</p>
+
+    {% if current_user.id != profile.user_id %}
+    <div class="profile-actions">
+      <form method="POST" action="{{ url_for('consultants.start_conversation', user_id=profile.user_id) }}">
+        <button type="submit" class="btn btn-ghost">Message first</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="profile-side">
+    <div class="price-card">
+      <span class="price-amount">{{ profile.price_display() }}</span>
+      <p class="price-note">Payment is arranged directly with the consultant — Liwec doesn't process payments.</p>
+    </div>
+
+    {% if current_user.id != profile.user_id %}
+    <div class="booking-card">
+      <h3>Request a consultation</h3>
+      <form method="POST" action="{{ url_for('consultants.book', user_id=profile.user_id) }}">
+        {% if open_slots %}
+        <div class="field">
+          <label for="slot_id">Pick an open time</label>
+          <select name="slot_id" id="slot_id">
+            <option value="">— Choose a slot —</option>
+            {% for slot in open_slots %}
+            <option value="{{ slot.id }}">{{ slot.start_time.strftime('%a, %b %-d · %-I:%M %p') }} UTC</option>
+            {% endfor %}
+          </select>
+        </div>
+        <p class="or-divider">or propose your own time</p>
+        {% else %}
+        <p class="sub">This consultant hasn't listed open slots — propose a time below.</p>
+        {% endif %}
+        <div class="field">
+          <label for="requested_time">Proposed date &amp; time (UTC)</label>
+          <input type="datetime-local" name="requested_time" id="requested_time">
+        </div>
+        <div class="field">
+          <label for="note">Note (optional)</label>
+          <textarea name="note" id="note" placeholder="What would you like to cover?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Send request</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/icons.js') }}"></script>
+{% endblock %}

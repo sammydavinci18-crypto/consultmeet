@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Messages · Liwec{% endblock %}
+
+{% block content %}
+<div class="dash-head">
+  <div>
+    <span class="eyebrow eyebrow-dark">Inbox</span>
+    <h1>Messages</h1>
+  </div>
+</div>
+
+{% if conversations %}
+<div class="conversation-list">
+  {% for c in conversations %}
+  {% set other = c.other_party(current_user.id) %}
+  {% set last = c.messages[-1] if c.messages else None %}
+  <a class="conversation-row" href="{{ url_for('messages.thread', conversation_id=c.id) }}">
+    <div class="avatar-circle">{{ other.name[0]|upper }}</div>
+    <div class="conversation-preview">
+      <strong>{{ other.name }}</strong>
+      <p>{{ last.content if last else "No messages yet — say hello." }}</p>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">No conversations yet. Message a consultant from their profile to start one.</div>
+{% endif %}
+{% endblock %}

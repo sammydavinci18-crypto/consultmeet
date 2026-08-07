@@ -18,10 +18,19 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    # "client" (default — books consultations), "consultant" (offers them,
+    # subject to admin verification), "admin" (reviews verification requests).
+    # A user can hold a consultant profile *and* still book others as a
+    # client — role just controls which extra tools show up for them.
+    role = db.Column(db.String(20), default="client", nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     meetings_hosted = db.relationship(
         "Meeting", backref="host", lazy=True, foreign_keys="Meeting.host_id"
+    )
+    consultant_profile = db.relationship(
+        "ConsultantProfile", backref="user", uselist=False, cascade="all, delete-orphan",
+        foreign_keys="ConsultantProfile.user_id",
     )
 
     def set_password(self, password):
@@ -29,6 +38,10 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_admin(self):
+        return self.role == "admin"
 
 
 class Meeting(db.Model):
@@ -80,3 +93,132 @@ class Recording(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     meeting = db.relationship("Meeting", backref=db.backref("recording", uselist=False, cascade="all, delete-orphan"))
+
+
+# =============================================================================
+# Consultant marketplace: profiles, verification, availability, booking, chat
+# =============================================================================
+
+class ConsultantProfile(db.Model):
+    __tablename__ = "consultant_profiles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
+
+    headline = db.Column(db.String(160))
+    bio = db.Column(db.Text)
+    # "education" | "business" | "both" — matches the two consulting tracks
+    # on the landing page, so the directory can filter the same way.
+    vertical = db.Column(db.String(20), default="education", nullable=False)
+
+    price_amount = db.Column(db.Numeric(10, 2))
+    price_currency = db.Column(db.String(8), default="USD")
+    price_unit = db.Column(db.String(20), default="session")  # "session" | "hour"
+
+    # "pending" (awaiting admin review) | "approved" | "rejected"
+    status = db.Column(db.String(20), default="pending", nullable=False)
+    review_note = db.Column(db.Text)  # admin's note, shown to the consultant on rejection
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_at = db.Column(db.DateTime)
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    documents = db.relationship(
+        "VerificationDocument", backref="profile", lazy=True, cascade="all, delete-orphan"
+    )
+    availability_slots = db.relationship(
+        "AvailabilitySlot", backref="profile", lazy=True, cascade="all, delete-orphan",
+        order_by="AvailabilitySlot.start_time",
+    )
+
+    def price_display(self):
+        if self.price_amount is None:
+            return "Rate on request"
+        unit = "hr" if self.price_unit == "hour" else "session"
+        return f"{self.price_currency} {self.price_amount:.0f} / {unit}"
+
+
+class VerificationDocument(db.Model):
+    __tablename__ = "verification_documents"
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("consultant_profiles.id"), nullable=False)
+    stored_filename = db.Column(db.String(255), nullable=False)  # random name on disk
+    original_filename = db.Column(db.String(255), nullable=False)  # name to show the consultant/admin
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class AvailabilitySlot(db.Model):
+    __tablename__ = "availability_slots"
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("consultant_profiles.id"), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+    is_booked = db.Column(db.Boolean, default=False, nullable=False)
+
+
+class Appointment(db.Model):
+    __tablename__ = "appointments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    consultant_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    slot_id = db.Column(db.Integer, db.ForeignKey("availability_slots.id"), nullable=True)
+
+    # Set when booked from an open slot; otherwise this is the client's
+    # requested date/time for the consultant to confirm or renegotiate.
+    requested_time = db.Column(db.DateTime, nullable=True)
+
+    price_amount = db.Column(db.Numeric(10, 2))
+    price_currency = db.Column(db.String(8), default="USD")
+    client_note = db.Column(db.Text)
+
+    # "pending" | "confirmed" | "declined" | "cancelled" | "completed"
+    status = db.Column(db.String(20), default="pending", nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    responded_at = db.Column(db.DateTime)
+
+    meeting_id = db.Column(db.Integer, db.ForeignKey("meetings.id"), nullable=True)
+
+    consultant = db.relationship("User", foreign_keys=[consultant_id])
+    client = db.relationship("User", foreign_keys=[client_id])
+    slot = db.relationship("AvailabilitySlot")
+    meeting = db.relationship("Meeting")
+
+    def price_display(self):
+        if self.price_amount is None:
+            return "Not set yet"
+        return f"{self.price_currency} {self.price_amount:.0f}"
+
+
+class Conversation(db.Model):
+    __tablename__ = "conversations"
+    __table_args__ = (db.UniqueConstraint("consultant_id", "client_id", name="uq_conversation_pair"),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    consultant_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    consultant = db.relationship("User", foreign_keys=[consultant_id])
+    client = db.relationship("User", foreign_keys=[client_id])
+    messages = db.relationship(
+        "DirectMessage", backref="conversation", lazy=True, cascade="all, delete-orphan",
+        order_by="DirectMessage.created_at",
+    )
+
+    def other_party(self, current_user_id):
+        return self.client if current_user_id == self.consultant_id else self.consultant
+
+
+class DirectMessage(db.Model):
+    __tablename__ = "direct_messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    read_at = db.Column(db.DateTime)
+
+    sender = db.relationship("User")
