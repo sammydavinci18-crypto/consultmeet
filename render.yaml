@@ -8,8 +8,13 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn --worker-class gthread --threads 4 --timeout 120 -w 1 --bind 0.0.0.0:$PORT app:app"
     # Runs once per deploy, after build, before traffic is switched over.
-    # db.create_all() is idempotent, so this is safe to run on every deploy.
-    preDeployCommand: "flask --app app init-db"
+    # Applies any pending migrations (see migrations/). The app also runs
+    # this same sync automatically on every worker boot as a resilient
+    # fallback (see _ensure_schema_up_to_date in app.py) in case this step
+    # doesn't run — e.g. if the service was ever created outside the
+    # render.yaml Blueprint — but keeping it here means a broken migration
+    # fails the deploy instead of going live half-broken.
+    preDeployCommand: "flask --app app db upgrade"
     healthCheckPath: /login
     envVars:
       - key: SECRET_KEY

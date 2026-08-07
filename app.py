@@ -5,7 +5,7 @@ from flask_login import LoginManager
 from datetime import datetime, timezone
 
 from config import Config
-from extensions import db, login_manager, socketio
+from extensions import db, login_manager, socketio, migrate
 from models import (
     User, Meeting, MeetingParticipant, ConsultationNote, Recording,
     ConsultantProfile, VerificationDocument, AvailabilitySlot, Appointment,
@@ -16,11 +16,72 @@ from models import (
 #   happened to be imported elsewhere already.
 
 
+def _ensure_schema_up_to_date(app):
+    """Runs on every boot, before the app serves traffic. Handles three
+    situations automatically — no manual `flask db stamp`/shell access
+    required, because we've already had one incident (the Python version
+    mix-up) caused by a manual step nobody got to run:
+
+      1. A database Alembic already manages (an alembic_version table
+         exists) -> just apply any pending migrations. This is the normal
+         case for every deploy from here on.
+      2. A pre-existing database from before Flask-Migrate was introduced
+         (this app's exact situation right now: tables exist via the old
+         db.create_all()-only approach, no alembic_version table) -> patch
+         known drift (columns added to a model after its table already
+         existed, which create_all() can never retrofit), run create_all()
+         as a final safety net (harmless/additive for existing tables), then
+         stamp the database at the latest migration so Alembic's history
+         lines up with reality — automatically, on this exact boot.
+      3. A genuinely fresh/empty database -> let Alembic build it from
+         scratch via the migration history.
+    """
+    from pathlib import Path
+    from sqlalchemy import inspect, text
+    from flask_migrate import upgrade as migrate_upgrade, stamp as migrate_stamp
+
+    migrations_dir = Path(app.root_path) / "migrations" / "versions"
+    if not migrations_dir.is_dir():
+        # No migration history committed yet in this environment (e.g. this
+        # exact process is what's about to create it via `flask db init`/
+        # `flask db migrate`). Nothing to sync against — skip cleanly rather
+        # than letting Alembic's CLI error (which raises SystemExit, not a
+        # normal Exception) blow up app boot.
+        return
+
+    with app.app_context():
+        try:
+            inspector = inspect(db.engine)
+            table_names = set(inspector.get_table_names())
+
+            if "alembic_version" in table_names:
+                migrate_upgrade()
+                return
+
+            if "users" in table_names:
+                existing_columns = {c["name"] for c in inspector.get_columns("users")}
+                if "role" not in existing_columns:
+                    db.session.execute(text(
+                        "ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'client'"
+                    ))
+                    db.session.commit()
+                    print("[startup] Patched missing users.role column.", file=sys.stderr)
+                db.create_all()
+                migrate_stamp()
+                print("[startup] Adopted Flask-Migrate on an existing database (stamped at head).", file=sys.stderr)
+            else:
+                migrate_upgrade()
+        except Exception as exc:
+            db.session.rollback()
+            print(f"[startup] Schema sync skipped/failed (non-fatal): {exc}", file=sys.stderr)
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     socketio.init_app(app)
 
@@ -51,21 +112,23 @@ def create_app():
     # Registers the Socket.IO event handlers defined in sockets.py
     import sockets  # noqa: F401
 
-    # Safety net: make sure tables exist on every boot, regardless of
-    # whether this was deployed via the render.yaml Blueprint (which runs
-    # `flask --app app init-db` as a preDeployCommand already) or a manually
-    # created Render service (which won't run that). db.create_all() only
-    # creates tables that don't exist yet, so this is a no-op most of the
-    # time and safe to run on every startup.
+    # Keeps the schema in sync on every boot — see _ensure_schema_up_to_date
+    # above for what this actually does depending on the database's state.
+    # This runs regardless of whether preDeployCommand ran (e.g. if this was
+    # ever deployed as a manually created Render service instead of via the
+    # render.yaml Blueprint) — so a plain deploy self-heals either way.
     with app.app_context():
         try:
-            db.create_all()
+            _ensure_schema_up_to_date(app)
         except Exception as exc:  # e.g. DB briefly unreachable during a cold start
-            print(f"[startup] Skipped db.create_all() — could not reach the database: {exc}", file=sys.stderr)
+            print(f"[startup] Schema sync failed — could not reach the database: {exc}", file=sys.stderr)
 
     @app.cli.command("init-db")
     def init_db():
-        """Create all database tables. Run with: flask --app app init-db"""
+        """Legacy/dev convenience only — prefer `flask db upgrade`.
+        Creates any missing tables directly (no migration history), which is
+        fine for a quick local sqlite sandbox but should NOT be used against
+        a database that Flask-Migrate manages (i.e. production)."""
         with app.app_context():
             db.create_all()
         print("Database tables created.")
