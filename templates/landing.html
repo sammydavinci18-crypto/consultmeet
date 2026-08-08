@@ -10,6 +10,7 @@
   </a>
   <nav class="landing-nav-links">
     <a href="#tracks">What we cover</a>
+    <a href="#book">Book a consultant</a>
     <a href="#features">Features</a>
     <a href="#how-it-works">How it works</a>
   </nav>
@@ -77,6 +78,62 @@
         <li>Growth &amp; market positioning</li>
         <li>Leadership &amp; team advisory</li>
       </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section-band section-book" id="book">
+  <div class="section-inner book-layout">
+    <div class="book-text">
+      <span class="eyebrow eyebrow-dark">Already know who you need?</span>
+      <h2>Browse verified consultants and book them directly.</h2>
+      <p class="book-lead">
+        Every consultant on Liwec has been through document verification before
+        their profile goes live. See their focus, their price, and pick how you
+        want to start — no back-and-forth over email.
+      </p>
+      <ul class="book-points">
+        <li>
+          <span class="icon" data-icon="check"></span>
+          <span><strong>See the price upfront.</strong> Every profile lists what a session or hour costs — no surprises.</span>
+        </li>
+        <li>
+          <span class="icon" data-icon="check"></span>
+          <span><strong>Message first, or book straight away.</strong> Ask questions and agree on details before committing, or grab an open slot if you already know what you need.</span>
+        </li>
+        <li>
+          <span class="icon" data-icon="check"></span>
+          <span><strong>Meet over video the moment it's confirmed.</strong> A booked consultation hands straight into the same video room, screen sharing, and notes as any other Liwec call.</span>
+        </li>
+      </ul>
+      <div class="book-actions">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('consultants.directory') }}">Browse consultants</a>
+        <a class="btn btn-ghost btn-lg" href="{{ url_for('consultants.apply') }}">List yourself as a consultant</a>
+      </div>
+    </div>
+
+    <div class="book-preview" aria-hidden="true">
+      <span class="book-preview-label">What browsing looks like</span>
+      <div class="consultant-card book-preview-card">
+        <div class="consultant-card-top">
+          <div class="avatar-circle">J</div>
+          <span class="verified-badge"><span class="icon" data-icon="check"></span> Verified</span>
+        </div>
+        <h3>Jordan Blake</h3>
+        <p class="consultant-headline">Accreditation &amp; curriculum strategy consultant</p>
+        <span class="vertical-pill vertical-education">Education administration</span>
+        <div class="consultant-card-price">USD 180 / session</div>
+      </div>
+      <div class="consultant-card book-preview-card book-preview-card-behind">
+        <div class="consultant-card-top">
+          <div class="avatar-circle">C</div>
+          <span class="verified-badge"><span class="icon" data-icon="check"></span> Verified</span>
+        </div>
+        <h3>Chidi Okafor</h3>
+        <p class="consultant-headline">Operations &amp; growth strategy advisor</p>
+        <span class="vertical-pill vertical-business">Business consulting</span>
+        <div class="consultant-card-price">USD 220 / hr</div>
+      </div>
     </div>
   </div>
 </section>
